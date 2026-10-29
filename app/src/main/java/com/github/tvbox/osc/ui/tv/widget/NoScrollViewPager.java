@@ -3,7 +3,6 @@ package com.github.tvbox.osc.ui.tv.widget;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,23 +24,10 @@ public class NoScrollViewPager extends ViewPager {
     }
 
     /**
-     * 禁止viewpager里面内容导致页面切换
-     *
-     * @param event
-     * @return
+     * 手机版：不再屏蔽触摸事件，由 ViewPager 自己接管左右滑动切换分类页
      */
     @Override
     public boolean executeKeyEvent(KeyEvent event) {
-        return false;
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-        return false;
-    }
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
         return false;
     }
 }
