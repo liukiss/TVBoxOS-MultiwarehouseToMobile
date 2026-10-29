@@ -37,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="middle"
-            android:maxWidth="@dimen/vs_300"
+            android:maxWidth="@dimen/vs_140"
             android:singleLine="true"
             android:textColor="@color/dialog_text_hint"
             android:textSize="@dimen/ts_22" />

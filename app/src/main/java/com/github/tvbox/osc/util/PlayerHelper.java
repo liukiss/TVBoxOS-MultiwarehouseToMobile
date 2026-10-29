@@ -137,6 +137,7 @@ public class PlayerHelper {
 
 
     public static void init() {
+        VideoView.sKeepScreenOnEnabled = Hawk.get(HawkConfig.KEEP_SCREEN_ON, true);
         try {
             tv.danmaku.ijk.media.player.IjkMediaPlayer.loadLibrariesOnce(new IjkLibLoader() {
                 @Override

@@ -56,6 +56,11 @@ public class VideoView<P extends AbstractPlayer> extends FrameLayout
      */
     protected FrameLayout mPlayerContainer;
 
+    /**
+     * 播放时是否保持屏幕常亮；关闭后遵循系统息屏/自动锁屏设置
+     */
+    public static boolean sKeepScreenOnEnabled = true;
+
     protected IRenderView mRenderView;
     protected RenderViewFactory mRenderViewFactory;
 
@@ -334,7 +339,7 @@ public class VideoView<P extends AbstractPlayer> extends FrameLayout
         if (mAudioFocusHelper != null && !isMute()) {
             mAudioFocusHelper.requestFocus();
         }
-        mPlayerContainer.setKeepScreenOn(true);
+        mPlayerContainer.setKeepScreenOn(sKeepScreenOnEnabled);
     }
 
     /**
@@ -401,7 +406,7 @@ public class VideoView<P extends AbstractPlayer> extends FrameLayout
         if (mAudioFocusHelper != null && !isMute()) {
             mAudioFocusHelper.requestFocus();
         }
-        mPlayerContainer.setKeepScreenOn(true);
+        mPlayerContainer.setKeepScreenOn(sKeepScreenOnEnabled);
     }
     /**
      * 释放播放器
@@ -603,7 +608,7 @@ public class VideoView<P extends AbstractPlayer> extends FrameLayout
                 break;
             case AbstractPlayer.MEDIA_INFO_RENDERING_START: // 视频/音频开始渲染
                 setPlayState(STATE_PLAYING);
-                mPlayerContainer.setKeepScreenOn(true);
+                mPlayerContainer.setKeepScreenOn(sKeepScreenOnEnabled);
                 break;
             case AbstractPlayer.MEDIA_INFO_VIDEO_ROTATION_CHANGED:
                 if (mRenderView != null) mRenderView.setVideoRotation(extra);

@@ -1,12 +1,19 @@
 package com.github.tvbox.osc.ui.fragment;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.animation.BounceInterpolator;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,7 +33,7 @@ import com.github.tvbox.osc.bean.MovieSort;
 import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.ui.activity.DetailActivity;
 import com.github.tvbox.osc.ui.activity.FastSearchActivity;
-import com.github.tvbox.osc.ui.activity.SearchActivity;
+import com.github.tvbox.osc.ui.activity.MainActivity;
 import com.github.tvbox.osc.ui.adapter.GridAdapter;
 import com.github.tvbox.osc.ui.adapter.GridFilterKVAdapter;
 import com.github.tvbox.osc.ui.dialog.GridFilterDialog;
@@ -45,6 +52,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -71,12 +80,39 @@ public class GridFragment extends BaseLazyFragment {
     private boolean hasActionItems = false;
     private boolean isTop = true;
     private View focusedView = null;
-    private float pullRefreshStartX;
-    private float pullRefreshStartY;
-    private boolean pullRefreshStartAtTop = false;
-    private boolean pullRefreshReady = false;
-    private int pullRefreshThreshold = 0;
-    private View loadSirView = null;
+    private static final int PULL_STATE_IDLE = 0;
+    private static final int PULL_STATE_PULLING = 1;
+    private static final int PULL_STATE_SETTLING = 2;
+    private static final int PULL_STATE_REFRESHING = 3;
+    private static final float PULL_DAMPING = 0.55f;
+    private static final int PULL_SETTLE_DURATION = 220;
+    private static final int PULL_REFRESH_TIMEOUT = 12000;
+
+    private int pullState = PULL_STATE_IDLE;
+    private View pullContentView;
+    private ImageView pullRefreshIcon;
+    private FrameLayout refreshAnimLayout;
+    private View refreshPulseOuter;
+    private View refreshPulseInner;
+    private ImageView refreshSpin;
+    private ObjectAnimator refreshSpinAnimator;
+    private ValueAnimator refreshPulseOuterAnimator;
+    private ValueAnimator refreshPulseInnerAnimator;
+    private Handler pullHandler;
+    private Runnable refreshTimeoutRunnable;
+    private float pullStartX;
+    private float pullStartY;
+    private boolean pullTracking = false;
+    private boolean pullReady = false;
+    private float pullGap = 0f;
+    private int pullTouchSlop = 0;
+    private int pullThreshold = 0;
+    private int pullMaxGap = 0;
+    private int pullIconHeight = 0;
+    private int pullReadyColor = 0;
+    private boolean refreshFromPull = false;
+    private View pullTouchBoundView;
+    private RecyclerView.OnItemTouchListener pullItemTouchListener;
 
     private static class GridInfo{
         public String sortID="";
@@ -169,6 +205,8 @@ public class GridFragment extends BaseLazyFragment {
         this.mGridView.setVisibility(View.VISIBLE);
 //        if(this.focusedView != null){ this.focusedView.requestFocus(); }
         if(mGridView != null) mGridView.requestFocus();
+        // 恢复到上一级页面后，重新绑定下拉刷新（当前 mGridView 已换回旧实例）
+        initPullRefresh();
         return true;
     }
 
@@ -202,7 +240,7 @@ public class GridFragment extends BaseLazyFragment {
         if(isFolederMode()){
             mGridView.setLayoutManager(new V7LinearLayoutManager(this.mContext, 1, false));
         }else{
-            int spanCount = isBaseOnWidth() ? 5 : 6;
+            int spanCount = 3; // 手机版：竖屏网格固定 3 列
             if (style != null) {
                 spanCount = ImgUtil.spanCountByStyle(style, spanCount);
             }
@@ -272,7 +310,7 @@ public class GridFragment extends BaseLazyFragment {
                             if (Hawk.get(HawkConfig.FAST_SEARCH_MODE, true) && enableFastSearch()) {
                                 jumpActivity(FastSearchActivity.class, bundle);
                             } else {
-                                jumpActivity(SearchActivity.class, bundle);
+                                MainActivity.openTab(mContext, MainActivity.TAB_SEARCH, bundle);
                             }
                         } else {
                             bundle.putString("picture", video.pic);
@@ -309,30 +347,92 @@ public class GridFragment extends BaseLazyFragment {
     }
 
     private void initPullRefresh() {
-        pullRefreshThreshold = ViewConfiguration.get(mContext).getScaledTouchSlop() * 6;
-        mGridView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
-            @Override
-            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent event) {
-                return handlePullRefreshTouch(rv, event);
-            }
+        if (pullHandler == null) {
+            pullHandler = new Handler(Looper.getMainLooper());
+        }
+        if (pullRefreshIcon == null) {
+            pullRefreshIcon = findViewById(R.id.pullRefreshIcon);
+            refreshAnimLayout = findViewById(R.id.refreshAnimLayout);
+            refreshPulseOuter = findViewById(R.id.refreshPulseOuter);
+            refreshPulseInner = findViewById(R.id.refreshPulseInner);
+            refreshSpin = findViewById(R.id.refreshSpin);
+        }
+        pullTouchSlop = ViewConfiguration.get(mContext).getScaledTouchSlop();
+        pullThreshold = Math.max(pullTouchSlop * 2, getResources().getDimensionPixelSize(R.dimen.vs_60));
+        pullMaxGap = Math.max(pullThreshold + getResources().getDimensionPixelSize(R.dimen.vs_10),
+                getResources().getDimensionPixelSize(R.dimen.vs_120));
+        pullIconHeight = getResources().getDimensionPixelSize(R.dimen.vs_36);
+        pullReadyColor = ContextCompat.getColor(mContext, R.color.color_02F8E1);
 
-            @Override
-            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent event) {
-            }
+        if (refreshTimeoutRunnable == null) {
+            refreshTimeoutRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if (pullState == PULL_STATE_REFRESHING) {
+                        finishPullRefresh();
+                    }
+                }
+            };
+        }
 
-            @Override
-            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
-            }
-        });
-        loadSirView = (View) mGridView.getParent();
-        if (loadSirView != null) {
-            loadSirView.setOnTouchListener(new View.OnTouchListener() {
+        if (pullTouchBoundView != null && pullItemTouchListener != null && pullTouchBoundView instanceof RecyclerView) {
+            ((RecyclerView) pullTouchBoundView).removeOnItemTouchListener(pullItemTouchListener);
+        }
+        if (pullItemTouchListener == null) {
+            pullItemTouchListener = new RecyclerView.OnItemTouchListener() {
+                @Override
+                public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent event) {
+                    int action = event.getActionMasked();
+                    if (action == MotionEvent.ACTION_DOWN) {
+                        preparePullStart(event);
+                        return false;
+                    }
+                    if (action == MotionEvent.ACTION_MOVE) {
+                        return handlePullMove(event);
+                    }
+                    return pullTracking;
+                }
+
+                @Override
+                public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent event) {
+                    switch (event.getActionMasked()) {
+                        case MotionEvent.ACTION_MOVE:
+                            handlePullMove(event);
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            if (pullTracking) {
+                                pullTracking = false;
+                                finishPull();
+                            }
+                            break;
+                        case MotionEvent.ACTION_CANCEL:
+                            if (pullTracking) {
+                                pullTracking = false;
+                                animatePullBack();
+                            }
+                            break;
+                    }
+                }
+
+                @Override
+                public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+                }
+            };
+        }
+        mGridView.addOnItemTouchListener(pullItemTouchListener);
+        pullTouchBoundView = mGridView;
+
+        pullContentView = (View) mGridView.getParent();
+        if (pullContentView != null) {
+            pullContentView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
-                    return handlePullRefreshTouch(v, event);
+                    return handlePullTouchEvent(event);
                 }
             });
+            bindPullRefreshTouch(pullContentView);
         }
+        resetPullUi();
     }
 
     private void bindPullRefreshTouch(View view) {
@@ -340,7 +440,7 @@ public class GridFragment extends BaseLazyFragment {
         view.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                return handlePullRefreshTouch(v, event);
+                return handlePullTouchEvent(event);
             }
         });
         if (view instanceof ViewGroup) {
@@ -351,37 +451,326 @@ public class GridFragment extends BaseLazyFragment {
         }
     }
 
-    private boolean handlePullRefreshTouch(View view, MotionEvent event) {
+    private void preparePullStart(MotionEvent event) {
+        if (pullState != PULL_STATE_IDLE) {
+            pullTracking = false;
+            return;
+        }
+        // 使用屏幕原始坐标，避免内容下移后本地坐标被位移抵消
+        pullStartX = event.getRawX();
+        pullStartY = event.getRawY();
+        pullTracking = false;
+        pullReady = false;
+    }
+
+    private boolean handlePullTouchEvent(MotionEvent event) {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                pullRefreshStartX = event.getX();
-                pullRefreshStartY = event.getY();
-                pullRefreshStartAtTop = !view.canScrollVertically(-1);
-                pullRefreshReady = false;
-                break;
+                preparePullStart(event);
+                return false;
             case MotionEvent.ACTION_MOVE:
-                float diffX = Math.abs(event.getX() - pullRefreshStartX);
-                float diffY = event.getY() - pullRefreshStartY;
-                pullRefreshReady = pullRefreshStartAtTop && diffY > pullRefreshThreshold && diffY > diffX;
-                break;
+                return handlePullMove(event);
             case MotionEvent.ACTION_UP:
-                if (pullRefreshReady) {
-                    pullRefreshReady = false;
-                    forceRefresh();
+                if (pullTracking) {
+                    pullTracking = false;
+                    finishPull();
                     return true;
                 }
-                break;
+                return false;
             case MotionEvent.ACTION_CANCEL:
-                pullRefreshReady = false;
-                break;
+                if (pullTracking) {
+                    pullTracking = false;
+                    animatePullBack();
+                    return true;
+                }
+                return false;
         }
         return false;
+    }
+
+    private boolean handlePullMove(MotionEvent event) {
+        if (pullState != PULL_STATE_IDLE && pullState != PULL_STATE_PULLING) return false;
+        if (!pullTracking) {
+            float dx = Math.abs(event.getRawX() - pullStartX);
+            float dy = event.getRawY() - pullStartY;
+            if (dy <= pullTouchSlop || dx >= dy) return false;
+            if (mGridView == null || mGridView.canScrollVertically(-1)) return false;
+            pullTracking = true;
+            pullState = PULL_STATE_PULLING;
+            // 以“真正到达顶部”的时刻为新起点，避免此前滚动距离造成图标跳变
+            pullStartY = event.getRawY() - pullTouchSlop;
+            pullStartX = event.getRawX();
+            applyPullGap(0f);
+            return true;
+        }
+        applyPullGap(event.getRawY() - pullStartY - pullTouchSlop);
+        return true;
+    }
+
+    private void applyPullGap(float drag) {
+        pullGap = Math.max(0f, Math.min(drag * PULL_DAMPING, pullMaxGap));
+        if (pullContentView != null) {
+            pullContentView.setTranslationY(pullGap);
+        }
+        if (pullRefreshIcon == null || pullIconHeight <= 0) return;
+        float progress = pullThreshold > 0 ? Math.min(1f, pullGap / pullThreshold) : 1f;
+        // 图标与海报同步下移，并从分类行底边界“长出”
+        pullRefreshIcon.setTranslationY(pullGap - pullIconHeight);
+        pullRefreshIcon.setRotation(progress * 360f);
+        pullRefreshIcon.setAlpha(Math.min(1f, pullGap / (pullIconHeight * 0.6f)));
+        float scale = 0.85f + 0.27f * progress;
+        pullRefreshIcon.setScaleX(scale);
+        pullRefreshIcon.setScaleY(scale);
+        boolean ready = pullGap >= pullThreshold;
+        if (ready != pullReady) {
+            pullReady = ready;
+            if (ready) {
+                pullRefreshIcon.setColorFilter(pullReadyColor, PorterDuff.Mode.SRC_IN);
+            } else {
+                pullRefreshIcon.clearColorFilter();
+            }
+        }
+    }
+
+    private void finishPull() {
+        if (pullReady && !isRequesting) {
+            startPullRefresh();
+        } else {
+            animatePullBack();
+        }
+    }
+
+    private void animatePullBack() {
+        pullState = PULL_STATE_SETTLING;
+        if (pullContentView != null) {
+            pullContentView.animate().translationY(0f)
+                    .setDuration(PULL_SETTLE_DURATION)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .start();
+        }
+        if (pullRefreshIcon != null) {
+            pullRefreshIcon.animate().translationY(-pullIconHeight).rotation(0f).alpha(0f)
+                    .scaleX(0.85f).scaleY(0.85f)
+                    .setDuration(PULL_SETTLE_DURATION)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .withEndAction(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (pullState == PULL_STATE_SETTLING) {
+                                pullState = PULL_STATE_IDLE;
+                                pullReady = false;
+                                pullGap = 0f;
+                                resetPullIcon();
+                            }
+                        }
+                    }).start();
+        } else {
+            pullState = PULL_STATE_IDLE;
+        }
+    }
+
+    private void startPullRefresh() {
+        pullState = PULL_STATE_REFRESHING;
+        pullReady = false;
+        refreshFromPull = true;
+        if (pullHandler != null && refreshTimeoutRunnable != null) {
+            pullHandler.removeCallbacks(refreshTimeoutRunnable);
+        }
+        if (pullContentView != null) {
+            pullContentView.animate().alpha(0f).translationY(0f)
+                    .setDuration(180)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .start();
+        }
+        if (pullRefreshIcon != null) {
+            pullRefreshIcon.animate().alpha(0f).setDuration(100)
+                    .withEndAction(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (pullState == PULL_STATE_REFRESHING) {
+                                pullRefreshIcon.setTranslationY(-pullIconHeight);
+                                pullRefreshIcon.setRotation(0f);
+                                pullRefreshIcon.clearColorFilter();
+                            }
+                        }
+                    }).start();
+        }
+        pullHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (pullState == PULL_STATE_REFRESHING) {
+                    showRefreshAnimation();
+                }
+            }
+        }, 120);
+        forceRefresh();
+    }
+
+    private void showRefreshAnimation() {
+        if (refreshAnimLayout == null) return;
+        refreshAnimLayout.setVisibility(View.VISIBLE);
+        refreshAnimLayout.setAlpha(0f);
+        refreshAnimLayout.setScaleX(0.85f);
+        refreshAnimLayout.setScaleY(0.85f);
+        refreshAnimLayout.animate().alpha(1f).scaleX(1.12f).scaleY(1.12f)
+                .setDuration(90)
+                .withEndAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (refreshAnimLayout != null) {
+                            refreshAnimLayout.animate().scaleX(1f).scaleY(1f).setDuration(70).start();
+                        }
+                    }
+                }).start();
+        startRefreshAnimators();
+        if (pullHandler != null && refreshTimeoutRunnable != null) {
+            pullHandler.postDelayed(refreshTimeoutRunnable, PULL_REFRESH_TIMEOUT);
+        }
+    }
+
+    private void startRefreshAnimators() {
+        stopRefreshAnimators();
+        if (refreshSpin != null) {
+            refreshSpin.setRotation(0f);
+            refreshSpinAnimator = ObjectAnimator.ofFloat(refreshSpin, "rotation", 0f, 360f);
+            refreshSpinAnimator.setDuration(1000);
+            refreshSpinAnimator.setRepeatCount(ValueAnimator.INFINITE);
+            refreshSpinAnimator.setInterpolator(new LinearInterpolator());
+            refreshSpinAnimator.start();
+        }
+        refreshPulseOuterAnimator = createPulseAnimator(refreshPulseOuter, 0);
+        refreshPulseInnerAnimator = createPulseAnimator(refreshPulseInner, 650);
+        if (refreshPulseOuterAnimator != null) refreshPulseOuterAnimator.start();
+        if (refreshPulseInnerAnimator != null) refreshPulseInnerAnimator.start();
+    }
+
+    private ValueAnimator createPulseAnimator(final View view, long delay) {
+        if (view == null) return null;
+        view.setScaleX(0.66f);
+        view.setScaleY(0.66f);
+        view.setAlpha(0.5f);
+        ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
+        animator.setDuration(1300);
+        animator.setStartDelay(delay);
+        animator.setRepeatCount(ValueAnimator.INFINITE);
+        animator.setInterpolator(new DecelerateInterpolator());
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float fraction = (float) animation.getAnimatedValue();
+                // 环最大只到视图边界内，避免被 refreshAnimLayout 的方形区域裁切
+                float scale = 0.66f + 0.334f * fraction;
+                view.setScaleX(scale);
+                view.setScaleY(scale);
+                view.setAlpha(0.5f * (1f - fraction));
+            }
+        });
+        return animator;
+    }
+
+    private void stopRefreshAnimators() {
+        if (refreshSpinAnimator != null) {
+            refreshSpinAnimator.cancel();
+            refreshSpinAnimator = null;
+        }
+        if (refreshPulseOuterAnimator != null) {
+            refreshPulseOuterAnimator.cancel();
+            refreshPulseOuterAnimator = null;
+        }
+        if (refreshPulseInnerAnimator != null) {
+            refreshPulseInnerAnimator.cancel();
+            refreshPulseInnerAnimator = null;
+        }
+        if (refreshSpin != null) refreshSpin.setRotation(0f);
+        resetPulseView(refreshPulseOuter);
+        resetPulseView(refreshPulseInner);
+    }
+
+    private void resetPulseView(View view) {
+        if (view == null) return;
+        view.setScaleX(0.66f);
+        view.setScaleY(0.66f);
+        view.setAlpha(0f);
+    }
+
+    private void finishPullRefresh() {
+        if (pullHandler != null && refreshTimeoutRunnable != null) {
+            pullHandler.removeCallbacks(refreshTimeoutRunnable);
+        }
+        stopRefreshAnimators();
+        if (refreshAnimLayout != null) {
+            refreshAnimLayout.animate().alpha(0f).setDuration(140)
+                    .withEndAction(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (refreshAnimLayout != null && pullState != PULL_STATE_REFRESHING) {
+                                refreshAnimLayout.setVisibility(View.GONE);
+                            }
+                        }
+                    }).start();
+        }
+        if (pullContentView != null) {
+            pullContentView.animate().alpha(1f).translationY(0f)
+                    .setDuration(240)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .start();
+        }
+        pullState = PULL_STATE_IDLE;
+        pullReady = false;
+        pullGap = 0f;
+        refreshFromPull = false;
+        resetPullIcon();
+    }
+
+    private void resetPullUi() {
+        if (pullHandler != null) {
+            pullHandler.removeCallbacksAndMessages(null);
+        }
+        stopRefreshAnimators();
+        pullState = PULL_STATE_IDLE;
+        pullTracking = false;
+        pullReady = false;
+        pullGap = 0f;
+        refreshFromPull = false;
+        if (pullContentView != null) {
+            pullContentView.animate().cancel();
+            pullContentView.setTranslationY(0f);
+            pullContentView.setAlpha(1f);
+        }
+        if (refreshAnimLayout != null) {
+            refreshAnimLayout.animate().cancel();
+            refreshAnimLayout.setVisibility(View.GONE);
+            refreshAnimLayout.setAlpha(1f);
+            refreshAnimLayout.setScaleX(1f);
+            refreshAnimLayout.setScaleY(1f);
+        }
+        resetPullIcon();
+    }
+
+    private void resetPullIcon() {
+        if (pullRefreshIcon == null) return;
+        pullRefreshIcon.animate().cancel();
+        pullRefreshIcon.clearColorFilter();
+        pullRefreshIcon.setAlpha(0f);
+        pullRefreshIcon.setRotation(0f);
+        pullRefreshIcon.setScaleX(0.85f);
+        pullRefreshIcon.setScaleY(0.85f);
+        pullRefreshIcon.setTranslationY(-pullIconHeight);
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (pullHandler != null) {
+            pullHandler.removeCallbacksAndMessages(null);
+        }
+        stopRefreshAnimators();
+        super.onDestroyView();
     }
 
     @Override
     protected void showEmpty() {
         super.showEmpty();
-        bindPullRefreshTouch(loadSirView);
+        bindPullRefreshTouch(pullContentView);
     }
 
     private void initViewModel() {
@@ -397,6 +786,9 @@ public class GridFragment extends BaseLazyFragment {
                         isLoad = true;
                         hasActionItems = hasActionVideo(absXml.movie.videoList);
                         gridAdapter.setNewData(absXml.movie.videoList);
+                        if (refreshFromPull) {
+                            finishPullRefresh();
+                        }
                     } else {
                         hasActionItems = hasActionItems || hasActionVideo(absXml.movie.videoList);
                         gridAdapter.addData(absXml.movie.videoList);
@@ -415,6 +807,9 @@ public class GridFragment extends BaseLazyFragment {
                     if (page == 1) {
                         hasActionItems = false;
                         showEmpty();
+                        if (refreshFromPull) {
+                            finishPullRefresh();
+                        }
                     } else if(page > 2){// 只有一页数据时不提示
                         Toast.makeText(getContext(), "没有更多了", Toast.LENGTH_SHORT).show();
                     }
@@ -445,7 +840,9 @@ public class GridFragment extends BaseLazyFragment {
     }
 
     private void initData() {
-        showLoading();
+        if (!refreshFromPull) {
+            showLoading();
+        }
         isRequesting = true;
         isLoad = false;
         hasActionItems = false;

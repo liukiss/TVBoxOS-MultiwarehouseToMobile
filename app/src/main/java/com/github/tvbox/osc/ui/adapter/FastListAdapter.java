@@ -13,7 +13,8 @@ import com.github.tvbox.osc.R;
 import java.util.ArrayList;
 
 public class FastListAdapter extends BaseQuickAdapter<String, BaseViewHolder> {
-    private String selectedName = "\u5168\u90e8";
+    private static final String SEARCH_ALL_NAME = "\u5168\u90e8";
+    private String selectedName = SEARCH_ALL_NAME;
 
     public FastListAdapter() {
         super(R.layout.item_search_word_hot, new ArrayList<>());
@@ -23,7 +24,9 @@ public class FastListAdapter extends BaseQuickAdapter<String, BaseViewHolder> {
     protected void convert(BaseViewHolder helper, String item) {
         TextView textView = helper.getView(R.id.tvSearchWord);
         textView.setText(item);
-        textView.setBackgroundResource(R.drawable.bg_fast_site_word);
+        // “全部”与站点按钮同款矩形样式，用蓝色背景区分
+        textView.setBackgroundResource(SEARCH_ALL_NAME.equals(item)
+                ? R.drawable.bg_fast_site_word_all : R.drawable.bg_fast_site_word);
         updateSelection(textView, item);
     }
 

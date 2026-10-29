@@ -2,7 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root"
     android:layout_width="match_parent"
-    android:minHeight="260dp"
+    android:minHeight="@dimen/vs_270"
     android:layout_height="match_parent">
 
     <LinearLayout
@@ -12,7 +12,7 @@
         android:layout_gravity="bottom"
         android:background="@drawable/shape_dialog_filter_bg"
         android:orientation="vertical"
-        android:padding="@dimen/vs_20">
+        android:padding="@dimen/vs_12">
 
     </LinearLayout>
 </FrameLayout>

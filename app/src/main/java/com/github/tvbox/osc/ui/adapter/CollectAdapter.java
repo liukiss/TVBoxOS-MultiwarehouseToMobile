@@ -12,14 +12,23 @@ import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.bean.SourceBean;
 import com.github.tvbox.osc.cache.VodCollect;
-import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.ImgUtil;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import me.jessyan.autosize.utils.AutoSizeUtils;
 
+/**
+ * 收藏适配器：支持多选态（长按进入，选中/待选角标）
+ */
 public class CollectAdapter extends BaseQuickAdapter<VodCollect, BaseViewHolder> {
+    private boolean selectMode;
+    private final Set<String> selectedIds = new HashSet<>();
+
     public CollectAdapter() {
         super(R.layout.item_grid, new ArrayList<>());
     }
@@ -27,7 +36,19 @@ public class CollectAdapter extends BaseQuickAdapter<VodCollect, BaseViewHolder>
     @Override
     protected void convert(BaseViewHolder helper, VodCollect item) {
         FrameLayout tvDel = helper.getView(R.id.delFrameLayout);
-        tvDel.setVisibility(HawkConfig.hotVodDelete ? View.VISIBLE : View.GONE);
+        tvDel.setVisibility(View.GONE);
+
+        boolean selected = selectMode && selectedIds.contains(keyOf(item));
+        View selectBorder = helper.getView(R.id.selectBorder);
+        ImageView selectBadge = helper.getView(R.id.ivSelectBadge);
+        if (selectMode) {
+            selectBorder.setVisibility(selected ? View.VISIBLE : View.GONE);
+            selectBadge.setVisibility(View.VISIBLE);
+            selectBadge.setImageResource(selected ? R.drawable.icon_source_checked : R.drawable.icon_source_unchecked);
+        } else {
+            selectBorder.setVisibility(View.GONE);
+            selectBadge.setVisibility(View.GONE);
+        }
 
         helper.setVisible(R.id.tvLang, false);
         helper.setVisible(R.id.tvArea, false);
@@ -43,5 +64,85 @@ public class CollectAdapter extends BaseQuickAdapter<VodCollect, BaseViewHolder>
         } else {
             ivThumb.setImageDrawable(ImgUtil.createTextDrawable(item.name));
         }
+    }
+
+    private String keyOf(VodCollect item) {
+        return item == null ? "" : String.valueOf(item.getId());
+    }
+
+    public void enterSelectMode(VodCollect first) {
+        selectMode = true;
+        selectedIds.clear();
+        if (first != null) {
+            selectedIds.add(keyOf(first));
+        }
+        notifyDataSetChanged();
+    }
+
+    public void exitSelectMode() {
+        if (!selectMode && selectedIds.isEmpty()) return;
+        selectMode = false;
+        selectedIds.clear();
+        notifyDataSetChanged();
+    }
+
+    public boolean isSelectMode() {
+        return selectMode;
+    }
+
+    /** 切换单条选中状态，返回切换后的选中数量 */
+    public int toggleSelect(VodCollect item) {
+        String key = keyOf(item);
+        if (!selectedIds.remove(key)) {
+            selectedIds.add(key);
+        }
+        return selectedIds.size();
+    }
+
+    public void selectAll(boolean all) {
+        selectedIds.clear();
+        if (all) {
+            for (VodCollect item : getData()) {
+                selectedIds.add(keyOf(item));
+            }
+        }
+    }
+
+    public boolean isAllSelected() {
+        List<VodCollect> data = getData();
+        if (data.isEmpty()) return false;
+        for (VodCollect item : data) {
+            if (!selectedIds.contains(keyOf(item))) return false;
+        }
+        return true;
+    }
+
+    public int getSelectedCount() {
+        return selectedIds.size();
+    }
+
+    public List<VodCollect> getSelectedItems() {
+        List<VodCollect> result = new ArrayList<>();
+        for (VodCollect item : getData()) {
+            if (selectedIds.contains(keyOf(item))) {
+                result.add(item);
+            }
+        }
+        return result;
+    }
+
+    /** 从列表数据中移除当前选中项，返回移除数量（调用方负责刷新） */
+    public int removeSelectedItems() {
+        List<VodCollect> data = getData();
+        int removed = 0;
+        Iterator<VodCollect> iterator = data.iterator();
+        while (iterator.hasNext()) {
+            if (selectedIds.contains(keyOf(iterator.next()))) {
+                iterator.remove();
+                removed++;
+            }
+        }
+        selectedIds.clear();
+        return removed;
     }
 }

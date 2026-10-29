@@ -78,18 +78,10 @@ public class RemoteServer extends NanoHTTPD {
     }
 
     private void addGetRequestProcess() {
-        getRequestList.add(new RawRequestProcess(this.mContext, "/", R.raw.index, NanoHTTPD.MIME_HTML));
-        getRequestList.add(new RawRequestProcess(this.mContext, "/index.html", R.raw.index, NanoHTTPD.MIME_HTML));
-        getRequestList.add(new RawRequestProcess(this.mContext, "/style.css", R.raw.style, "text/css"));
-        getRequestList.add(new RawRequestProcess(this.mContext, "/ui.css", R.raw.ui, "text/css"));
-        getRequestList.add(new RawRequestProcess(this.mContext, "/jquery.js", R.raw.jquery, "application/x-javascript"));
-        getRequestList.add(new RawRequestProcess(this.mContext, "/script.js", R.raw.script, "application/x-javascript"));
-        getRequestList.add(new RawRequestProcess(this.mContext, "/favicon.ico", R.drawable.app_icon, "image/x-icon"));
         getRequestList.add(new CacheRequestProcess());
     }
 
     private void addPostRequestProcess() {
-        postRequestList.add(new InputRequestProcess(this));
         postRequestList.add(new CacheRequestProcess());
     }
 
@@ -195,8 +187,6 @@ public class RemoteServer extends NanoHTTPD {
                     }
                     PushReceiver.send(mContext, url);
                     return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "ok");    
-                } else if (fileName.equals("/action")) {
-                    return handleAction(session.getParms());
                 } else if (fileName.equals("/media")) {
                     return handleMedia();
                 }  else if (fileName.startsWith("/proxyM3u8")) {
@@ -327,15 +317,6 @@ public class RemoteServer extends NanoHTTPD {
             return getProxy(rs);
         }
         return getProxy(null);
-    }
-
-    private Response handleAction(Map<String, String> params) {
-        if (params == null) return createPlainTextResponse(Response.Status.OK, "ok");
-        String action = params.get("do");
-        if ("refresh".equals(action)) {
-            handleRefreshAction(params);
-        }
-        return createPlainTextResponse(Response.Status.OK, "ok");
     }
 
     private void handleRefreshAction(Map<String, String> params) {

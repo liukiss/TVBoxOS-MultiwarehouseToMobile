@@ -174,7 +174,7 @@
         android:paddingBottom="@dimen/vs_15"
         android:text=""
         android:textColor="#ffffff"
-        android:textSize="16sp"
+        android:textSize="@dimen/ts_16"
         android:textStyle="bold"/>
 
     <com.google.android.exoplayer2.ui.SubtitleView
@@ -195,7 +195,7 @@
         android:paddingBottom="@dimen/vs_20"
         android:text=""
         android:textColor="#00ff00"
-        android:textSize="24sp"
+        android:textSize="@dimen/ts_24"
         android:textScaleX="1.1"
         android:textStyle="bold"
         android:visibility="gone" />
@@ -208,17 +208,17 @@
         android:background="@drawable/shape_dialog_filter_bg"
         android:gravity="center_vertical"
         android:orientation="vertical"
-        android:paddingLeft="@dimen/vs_20"
-        android:paddingTop="@dimen/vs_20"
-        android:paddingRight="@dimen/vs_20"
-        android:paddingBottom="@dimen/vs_10"
+        android:paddingLeft="@dimen/vs_12"
+        android:paddingTop="@dimen/vs_10"
+        android:paddingRight="@dimen/vs_12"
+        android:paddingBottom="@dimen/vs_8"
         android:visibility="gone"
         tools:visibility="visible">
 
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/vs_10"
+            android:layout_marginBottom="@dimen/vs_6"
             android:fillViewport="false"
             android:focusable="false"
             android:focusableInTouchMode="false"
@@ -235,136 +235,163 @@
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:paddingRight="@dimen/vs_10"
                 android:text="播放"
                 android:textColor="@color/color_FFFFFF"
-                android:textSize="@dimen/ts_19" />
+                android:textSize="@dimen/ts_16" />
 
             <TextView
                 android:id="@+id/play_next"
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="下一集"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19" />
+                android:textSize="@dimen/ts_16" />
 
             <TextView
                 android:id="@+id/play_pre"
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="上一集"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19" />
+                android:textSize="@dimen/ts_16" />
 
             <TextView
                 android:id="@+id/play_retry"
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="重播"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19" />
+                android:textSize="@dimen/ts_16" />
 
             <TextView
                 android:id="@+id/play_refresh"
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="刷新"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19" />
+                android:textSize="@dimen/ts_16" />
 
             <TextView
                 android:id="@+id/play_scale"
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="16:9"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19" />
+                android:textSize="@dimen/ts_16" />
 
             <TextView
                 android:id="@+id/play_speed"
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="x1.0"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19" />
+                android:textSize="@dimen/ts_16" />
 
             <TextView
                 android:id="@+id/play_player"
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="EXO播放器"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19" />
+                android:textSize="@dimen/ts_16" />
 
             <TextView
                 android:id="@+id/play_ijk"
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="硬解"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19" />
+                android:textSize="@dimen/ts_16" />
 
             <TextView
                 android:id="@+id/play_time_start_end_text"
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
-                android:padding="@dimen/vs_10"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="片头尾"
                 android:textColor="@color/color_FFFFFF"
-                android:textSize="@dimen/ts_19"
+                android:textSize="@dimen/ts_16"
                 android:visibility="gone" />
 
             <TextView
@@ -372,28 +399,34 @@
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="01:00"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19" />
+                android:textSize="@dimen/ts_16" />
 
             <TextView
                 android:id="@+id/play_time_end"
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="01:00"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19" />
+                android:textSize="@dimen/ts_16" />
 
             <!--添加片头片尾重置按钮-->
             <TextView
@@ -401,126 +434,153 @@
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="重置"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19" />
+                android:textSize="@dimen/ts_16" />
 
             <TextView
                 android:id="@+id/play_cast"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:visibility="visible"
                 android:text="投屏"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19"/>
+                android:textSize="@dimen/ts_16"/>
 
             <TextView
                 android:id="@+id/zimu_select"
                 android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="字幕"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19" />
+                android:textSize="@dimen/ts_16" />
 
             <TextView
                 android:id="@+id/audio_track_select"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:visibility="gone"
                 android:text="音轨"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19"/>
+                android:textSize="@dimen/ts_16"/>
 
             <TextView
                 android:id="@+id/video_track_select"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:visibility="gone"
                 android:text="视轨"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19"/>
+                android:textSize="@dimen/ts_16"/>
 
             <TextView
                 android:id="@+id/danmu_setting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="弹幕"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19"
+                android:textSize="@dimen/ts_16"
                 android:visibility="gone" />
 
             <TextView
                 android:id="@+id/danmu_search_ui"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:text="搜弹幕"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19"
+                android:textSize="@dimen/ts_16"
                 android:visibility="gone"/>
 
             <TextView
                 android:id="@+id/landscape_portrait"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:visibility="gone"
                 android:text="横竖屏"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19"/>
+                android:textSize="@dimen/ts_16"/>
 
             <TextView
                 android:id="@+id/screen_display"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:background="@drawable/button_dialog_main"
                 android:focusable="true"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingTop="@dimen/vs_7"
+                android:paddingRight="@dimen/vs_10"
+                android:paddingBottom="@dimen/vs_7"
                 android:visibility="visible"
                 android:text="屏显"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_19"/>
+                android:textSize="@dimen/ts_16"/>
 
             </LinearLayout>
 
@@ -531,7 +591,7 @@
             android:id="@+id/parse_root"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/vs_10"
+            android:layout_marginBottom="@dimen/vs_6"
             android:orientation="horizontal"
             android:visibility="gone"
             tools:visibility="visible">
@@ -540,8 +600,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginEnd="@dimen/vs_5"
-                android:layout_marginRight="@dimen/vs_5"
+                android:layout_marginEnd="@dimen/vs_8"
+                android:layout_marginRight="@dimen/vs_8"
                 android:paddingRight="@dimen/vs_10"
                 android:text="解析"
                 android:textColor="@color/color_FFFFFF"
@@ -562,21 +622,23 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/vs_10"
+            android:layout_marginBottom="@dimen/vs_6"
             android:orientation="horizontal"
             android:baselineAligned="false"
             android:gravity="center_vertical">
             <TextView
                 android:id="@+id/curr_time"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:minWidth="48dp"
+                android:layout_marginEnd="@dimen/vs_6"
+                android:layout_marginRight="@dimen/vs_6"
+                android:minWidth="@dimen/vs_40"
                 android:paddingStart="@dimen/vs_0"
                 android:paddingEnd="@dimen/vs_0"
+                android:singleLine="true"
                 android:text="@string/_00_00"
                 android:textColor="@color/color_FFFFFF"
-                android:textSize="@dimen/ts_20"
+                android:textSize="@dimen/ts_16"
                 android:gravity="end|center_vertical"
                 android:textAllCaps="true"
                 android:includeFontPadding="false"
@@ -585,13 +647,13 @@
             <SeekBar
                 android:id="@+id/seekBar"
                 android:layout_width="0dp"
-                android:layout_height="@dimen/vs_30"
-                android:layout_weight="16"
+                android:layout_height="@dimen/vs_20"
+                android:layout_weight="1"
                 android:layout_gravity="center_vertical"
                 android:max="1000"
                 android:progressDrawable="@drawable/shape_player_control_vod_seek"
                 android:thumb="@drawable/shape_player_control_vod_seek_thumb"
-                android:thumbOffset="8dp"
+                android:thumbOffset="@dimen/vs_8"
                 android:background="@null"
                 android:maxHeight="@dimen/vs_6"
                 android:minHeight="@dimen/vs_6"
@@ -603,15 +665,17 @@
 
             <TextView
                 android:id="@+id/total_time"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:minWidth="48dp"
+                android:layout_marginStart="@dimen/vs_6"
+                android:layout_marginLeft="@dimen/vs_6"
+                android:minWidth="@dimen/vs_40"
                 android:paddingStart="@dimen/vs_0"
                 android:paddingEnd="@dimen/vs_0"
+                android:singleLine="true"
                 android:text="@string/_00_00"
                 android:textColor="@color/color_FFFFFF"
-                android:textSize="@dimen/ts_20"
+                android:textSize="@dimen/ts_16"
                 android:gravity="start|center_vertical"
                 android:includeFontPadding="false"
                 tools:ignore="RtlSymmetry" />
@@ -693,8 +757,8 @@
 
     <TextView
         android:id="@+id/tv_slide_progress_text"
-        android:layout_width="@dimen/vs_200"
-        android:layout_height="@dimen/vs_100"
+        android:layout_width="@dimen/vs_160"
+        android:layout_height="@dimen/vs_80"
         android:layout_gravity="center"
         android:background="@drawable/shape_user_focus"
         android:focusable="false"
@@ -747,13 +811,10 @@
 
     </LinearLayout>
 
-    <ProgressBar
-        android:layout_width="@dimen/vs_50"
-        android:layout_height="@dimen/vs_50"
+    <com.github.tvbox.osc.ui.tv.widget.LoadingRingView
+        android:layout_width="@dimen/vs_45"
+        android:layout_height="@dimen/vs_45"
         android:layout_gravity="center"
-        android:indeterminateBehavior="repeat"
-        android:indeterminateDrawable="@drawable/anim_loading"
-        android:indeterminateOnly="true"
         android:tag="vod_control_loading"
         android:visibility="gone" />
 
@@ -803,7 +864,7 @@
         android:layout_marginTop="@dimen/vs_80"
         android:background="@drawable/bg_speed_indicator"
         android:visibility="gone"
-        android:padding="8dp">
+        android:padding="@dimen/vs_8">
 
         <TextView
             android:id="@+id/tv_speed_3"
@@ -811,7 +872,7 @@
             android:layout_height="wrap_content"
             android:text="3.0 X"
             android:textColor="#FFFFFF"
-            android:textSize="18sp"
+            android:textSize="@dimen/ts_18"
             android:textStyle="bold" />
     </FrameLayout>
 

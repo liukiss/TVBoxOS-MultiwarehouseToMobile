@@ -19,14 +19,38 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class SelectDialog<T> extends BaseDialog {
+    private final boolean bottomSheet;
+
     public SelectDialog(@NonNull @NotNull Context context) {
         super(context);
+        this.bottomSheet = false;
         setContentView(R.layout.dialog_select);
     }
 
     public SelectDialog(@NonNull @NotNull Context context, int resId) {
         super(context);
+        this.bottomSheet = false;
         setContentView(resId);
+    }
+
+    /**
+     * 手机版：bottomSheet 为 true 时使用贴底全宽面板布局，并从屏幕下缘向上弹出
+     */
+    public SelectDialog(@NonNull @NotNull Context context, boolean bottomSheet) {
+        super(context);
+        this.bottomSheet = bottomSheet;
+        setContentView(bottomSheet ? R.layout.dialog_select_sheet : R.layout.dialog_select);
+    }
+
+    @Override
+    public void show() {
+        if (bottomSheet) {
+            prepareBottomSheet();
+        }
+        super.show();
+        if (bottomSheet && isShowing()) {
+            applyBottomSheet(findViewById(R.id.title));
+        }
     }
 
     @Override

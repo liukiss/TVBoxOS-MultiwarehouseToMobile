@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 手机版推送弹窗：与“换源”弹窗同一套背景与边距，竖屏、非全屏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/vs_12"
+        android:layout_marginRight="@dimen/vs_12"
+        android:background="@drawable/shape_danmu_setting_bg"
+        android:orientation="vertical"
+        android:padding="@dimen/vs_16">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/vs_6"
+            android:text="推送播放地址"
+            android:textColor="@color/dialog_text_primary"
+            android:textSize="@dimen/ts_16" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/vs_12"
+            android:text="支持视频直链，或带 @Headers= 标记的推送地址"
+            android:textColor="@color/dialog_text_hint"
+            android:textSize="@dimen/ts_14" />
+
+        <EditText
+            android:id="@+id/etPushUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/input_dialog_api_input"
+            android:hint="请输入影片播放地址"
+            android:imeOptions="actionDone"
+            android:inputType="textUri"
+            android:maxLines="1"
+            android:minHeight="@dimen/vs_30"
+            android:paddingLeft="@dimen/vs_2"
+            android:paddingTop="@dimen/vs_6"
+            android:paddingRight="@dimen/vs_2"
+            android:paddingBottom="@dimen/vs_6"
+            android:singleLine="true"
+            android:textColor="@color/dialog_text_primary"
+            android:textColorHint="@color/dialog_text_hint"
+            android:textSize="@dimen/ts_14" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/vs_16"
+            android:gravity="right"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvPushSubmit"
+                android:layout_width="@dimen/vs_60"
+                android:layout_height="@dimen/vs_30"
+                android:background="@drawable/button_danmu_setting"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="推送"
+                android:textColor="@color/dialog_text_primary"
+                android:textSize="@dimen/ts_14" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

@@ -13,6 +13,7 @@ import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.bean.Movie;
 import com.github.tvbox.osc.bean.SourceBean;
+import com.github.tvbox.osc.ui.widget.RatioFrameLayout;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.ImgUtil;
 import com.orhanobut.hawk.Hawk;
@@ -67,25 +68,36 @@ public class HomeHotVodAdapter extends BaseQuickAdapter<Movie.Video, BaseViewHol
         String pic = item.pic == null ? "" : item.pic.trim();
         if (!TextUtils.isEmpty(pic)) {
             if (ImgUtil.isBase64Image(pic)) {
+                // 手机版：圆角交给 clipRounded 按 View 实际尺寸裁剪
                 ivThumb.setImageBitmap(ImgUtil.decodeBase64ToBitmap(pic));
+                ivThumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
             } else {
-                ImgUtil.load(pic, ivThumb, AutoSizeUtils.mm2px(mContext, 10), AutoSizeUtils.mm2px(mContext, newWidth), AutoSizeUtils.mm2px(mContext, newHeight), item.name);
+                ImgUtil.load(pic, ivThumb, 0, AutoSizeUtils.mm2px(mContext, newWidth), AutoSizeUtils.mm2px(mContext, newHeight), item.name);
             }
         } else {
             ivThumb.setImageDrawable(ImgUtil.createTextDrawable(item.name));
+            ivThumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        }
+        // 手机版适配：横排热播（非网格）时固定 item 根宽，否则 match_parent 根宽会一屏只占一项
+        if (!Hawk.get(HawkConfig.HOME_REC_STYLE, true)) {
+            ViewGroup.LayoutParams rootLp = helper.itemView.getLayoutParams();
+            if (rootLp != null) {
+                rootLp.width = AutoSizeUtils.mm2px(mContext, 110);
+                helper.itemView.setLayoutParams(rootLp);
+            }
         }
         applyStyleToImage(ivThumb);
     }
 
     private void applyStyleToImage(final ImageView ivThumb) {
-        if (style != null) {
-            ViewGroup container = (ViewGroup) ivThumb.getParent();
-            int width = defaultWidth;
-            int height = (int) (width / style.ratio);
-            ViewGroup.LayoutParams containerParams = container.getLayoutParams();
-            containerParams.height = AutoSizeUtils.mm2px(mContext, height);
-            containerParams.width = AutoSizeUtils.mm2px(mContext, width);
-            container.setLayoutParams(containerParams);
+        final ViewGroup container = (ViewGroup) ivThumb.getParent();
+        // 手机版：高度在测量阶段按站点比例算出（非 style 站点沿用 XML 固定高度），
+        // 不再布局完成后 post 改高，避免 RecyclerView 残留旧测量高度、行距随机变大。
+        // 横排热播的固定列宽已加在 item 根布局上，容器 match_parent 跟随该宽度。
+        if (container instanceof RatioFrameLayout) {
+            ((RatioFrameLayout) container).setRatio(style != null ? style.ratio : 0f);
         }
+        // 圆角与卡片圆角背景保持一致
+        ImgUtil.clipRounded(ivThumb, AutoSizeUtils.mm2px(mContext, 10));
     }
 }

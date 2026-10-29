@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/shape_user_focus"
     android:focusable="true"
     android:padding="@dimen/vs_1">
 
     <FrameLayout
-        android:layout_width="@dimen/vs_180"
-        android:layout_height="@dimen/vs_240">
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/vs_150">
 
         <ImageView
             android:id="@+id/ivThumb"
@@ -38,7 +38,7 @@
                 android:paddingRight="@dimen/vs_5"
                 android:singleLine="true"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_20" />
+                android:textSize="@dimen/ts_22" />
 
         </LinearLayout>
 
@@ -64,7 +64,7 @@
                 android:paddingRight="@dimen/vs_5"
                 android:singleLine="true"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/ts_20" />
+                android:textSize="@dimen/ts_22" />
 
             <TextView
                 android:id="@+id/tvName"

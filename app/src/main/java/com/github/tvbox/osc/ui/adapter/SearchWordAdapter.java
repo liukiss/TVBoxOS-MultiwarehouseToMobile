@@ -16,6 +16,13 @@ public class SearchWordAdapter extends BaseQuickAdapter<String, BaseViewHolder> 
         super(R.layout.item_search_word_split, new ArrayList<>());
     }
 
+    /**
+     * 手机版：允许指定条目布局，聚合搜索页使用“搜索对象”全宽按钮样式
+     */
+    public SearchWordAdapter(int layoutResId) {
+        super(layoutResId, new ArrayList<>());
+    }
+
     @Override
     protected void convert(BaseViewHolder helper, String item) {
         helper.setText(R.id.tvSearchWord, item);

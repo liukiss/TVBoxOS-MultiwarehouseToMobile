@@ -2,14 +2,13 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_focused="true">
         <shape>
-            <corners android:radius="@dimen/preview_player_radius" />
+            <!-- 手机版：播放区域改为矩形，去掉圆角 -->
             <stroke android:width="2mm" android:color="@color/color_FFFFFF" />
             <solid android:color="@color/color_66000000" />
         </shape>
     </item>
     <item android:state_focused="false">
         <shape>
-            <corners android:radius="@dimen/preview_player_radius" />
             <solid android:color="@color/color_66000000" />
         </shape>
     </item>

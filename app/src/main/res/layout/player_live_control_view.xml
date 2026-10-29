@@ -63,13 +63,10 @@
         android:visibility="gone"
         tools:text="100" />
 
-    <ProgressBar
-        android:layout_width="@dimen/vs_50"
-        android:layout_height="@dimen/vs_50"
+    <com.github.tvbox.osc.ui.tv.widget.LoadingRingView
+        android:layout_width="@dimen/vs_45"
+        android:layout_height="@dimen/vs_45"
         android:layout_gravity="center"
-        android:indeterminateBehavior="repeat"
-        android:indeterminateDrawable="@drawable/anim_loading"
-        android:indeterminateOnly="true"
         android:tag="vod_control_loading"
         android:visibility="gone" />
 

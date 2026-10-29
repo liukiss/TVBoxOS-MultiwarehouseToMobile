@@ -1,10 +1,8 @@
 package com.github.tvbox.osc.ui.fragment;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.http.SslError;
@@ -30,7 +28,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -144,7 +141,7 @@ public class PlayFragment extends BaseLazyFragment {
     private MyVideoView mVideoView;
     private TextView mPlayLoadTip;
     private ImageView mPlayLoadErr;
-    private ProgressBar mPlayLoading;
+    private View mPlayLoading;
     private VodController mController;
     private SourceViewModel sourceViewModel;
     private Observer<JSONObject> playResultObserver;
@@ -1360,6 +1357,7 @@ public class PlayFragment extends BaseLazyFragment {
         sourceBean = ApiConfig.get().getSource(sourceKey);
         ApiConfig.get().setCurrentPlaySourceKey(sourceKey);
         initPlayerCfg();
+        mController.resetAutoPortraitDecision();
         triedLineFlags.clear();
         play(false);
     }
@@ -1407,11 +1405,8 @@ public class PlayFragment extends BaseLazyFragment {
     }
 
     public boolean onBackPressed() {
-        int requestedOrientation = requireActivity().getRequestedOrientation();
-        if (requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT || requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT || requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT) {
-            requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-            mController.mLandscapePortraitBtn.setText("竖屏");
-        }
+        // 手机版适配：竖屏全屏时按返回直接退出全屏回到竖屏详情页。
+        // 原来这里会把方向强制改成横屏，导致退出过程出现一次“竖屏→横屏→竖屏”的旋转动画。
         if (mController.onBackPressed()) {
             return true;
         }
@@ -1420,6 +1415,11 @@ public class PlayFragment extends BaseLazyFragment {
 
     public void setExitingPreview(boolean exitingPreview) {
         this.exitingPreview = exitingPreview;
+    }
+
+    /** 当前视频是否为竖屏，供全屏入口在请求方向前预判 */
+    public boolean isCurrentVideoPortrait() {
+        return mController != null && mController.isCurrentVideoPortrait();
     }
 
     private boolean hasAudioOnlyPlayback() {
@@ -2814,9 +2814,7 @@ public class PlayFragment extends BaseLazyFragment {
         settings.setLoadWithOverviewMode(true);
         settings.setBuiltInZoomControls(true);
         settings.setSupportZoom(false);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        }
+        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 //        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         /* 添加webView配置 */
@@ -2936,7 +2934,6 @@ public class PlayFragment extends BaseLazyFragment {
 
         @Nullable
         @Override
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
             String url = request.getUrl().toString();
             LOG.i("echo-shouldInterceptRequest url:" + url);

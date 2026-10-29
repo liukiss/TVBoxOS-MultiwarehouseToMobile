@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_focused="true">
+    <!-- 手机版：矩形底，补充按压态 -->
+    <item android:state_pressed="true">
         <shape>
-            <corners android:radius="@dimen/vs_20" />
             <solid android:color="@color/color_FF0057" />
-            <stroke android:width="2mm" android:color="@android:color/white" />
+            <stroke android:width="@dimen/vs_2" android:color="@android:color/white" />
         </shape>
     </item>
-    <item android:state_focused="false">
+    <item android:state_focused="true">
         <shape>
-            <corners android:radius="@dimen/vs_20" />
+            <solid android:color="@color/color_FF0057" />
+            <stroke android:width="@dimen/vs_2" android:color="@android:color/white" />
+        </shape>
+    </item>
+    <item>
+        <shape>
             <solid android:color="@color/color_FF0057" />
         </shape>
     </item>

@@ -2,27 +2,23 @@ package com.github.tvbox.osc.ui.dialog;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.bean.MoreSourceBean;
 import com.github.tvbox.osc.event.RefreshEvent;
-import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.adapter.MoreSourceAdapter;
-import com.github.tvbox.osc.ui.tv.QRCodeGen;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.HistoryHelper;
 import com.github.tvbox.osc.util.MoreSourceHelper;
-import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.orhanobut.hawk.Hawk;
 
 import org.greenrobot.eventbus.EventBus;
@@ -31,8 +27,6 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import me.jessyan.autosize.utils.AutoSizeUtils;
 
 /**
  * 直播地址管理弹窗（v2.1.0 新增，参照影视仓"添加直播源"）
@@ -46,12 +40,10 @@ import me.jessyan.autosize.utils.AutoSizeUtils;
 public class LiveSourceDialog extends BaseDialog {
 
     private final Context mContext;
-    private TvRecyclerView mListView;
+    private RecyclerView mListView;
     private MoreSourceAdapter mAdapter;
     private EditText inputLiveName;
     private EditText inputLiveUrl;
-    private TextView jumpWeb;
-    private ImageView qrCode;
 
     private final List<MoreSourceBean> liveList = new ArrayList<>();
 
@@ -84,12 +76,21 @@ public class LiveSourceDialog extends BaseDialog {
         loadData();
     }
 
+    @Override
+    public void show() {
+        prepareBottomSheet();
+        super.show();
+        applyBottomSheet(findViewById(R.id.dragHandle));
+        if (getWindow() != null) {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+                    | WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+        }
+    }
+
     private void initView() {
         mListView = findViewById(R.id.list);
         inputLiveName = findViewById(R.id.input_live_name);
         inputLiveUrl = findViewById(R.id.input_live_url);
-        jumpWeb = findViewById(R.id.jump_web);
-        qrCode = findViewById(R.id.qrCode);
 
         mAdapter = new MoreSourceAdapter(new MoreSourceAdapter.SelectDialogInterface() {
             @Override
@@ -112,14 +113,9 @@ public class LiveSourceDialog extends BaseDialog {
                 mAdapter.setData(new ArrayList<>(liveList));
             }
         });
+        mListView.setLayoutManager(new LinearLayoutManager(mContext));
+        mListView.getRecycledViewPool().clear();
         mListView.setAdapter(mAdapter);
-        // v2.1.4：弹窗打开后默认聚焦列表首项（机顶盒遥控器 D-pad 可用）
-        mListView.post(new Runnable() {
-            @Override
-            public void run() {
-                mListView.requestFocus();
-            }
-        });
 
         findViewById(R.id.inputSubmit).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -177,25 +173,12 @@ public class LiveSourceDialog extends BaseDialog {
             });
         }
 
-        refreshQRCode();
     }
 
     private void loadData() {
         liveList.clear();
         liveList.addAll(MoreSourceHelper.getLiveSourceList());
         mAdapter.setData(new ArrayList<>(liveList));
-    }
-
-    private void refreshQRCode() {
-        try {
-            String address = ControlManager.get().getAddress(false);
-            jumpWeb.setText("扫码远程推送（直播地址）\n" + address);
-            Bitmap bitmap = QRCodeGen.generateBitmap(address + "api.html",
-                    AutoSizeUtils.mm2px(mContext, 260), AutoSizeUtils.mm2px(mContext, 260));
-            qrCode.setImageBitmap(bitmap);
-        } catch (Throwable th) {
-            th.printStackTrace();
-        }
     }
 
     /* ---------- 添加直播源 ---------- */

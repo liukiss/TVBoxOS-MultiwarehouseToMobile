@@ -62,7 +62,7 @@ public class EpisodeDialog extends BaseDialog {
         episodeList.setAdapter(adapter);
         adapter.setNewData(episodes);
         int initialGridWidth = getContext().getResources().getDisplayMetrics().widthPixels / 2
-                - getContext().getResources().getDimensionPixelSize(R.dimen.vs_30) * 2;
+                - getContext().getResources().getDimensionPixelSize(R.dimen.vs_16) * 2;
         if (initialGridWidth > 0) {
             layoutManager.setSpanCount(getSpanCount(initialGridWidth));
             scrollToSelectedPosition(layoutManager);
@@ -120,7 +120,7 @@ public class EpisodeDialog extends BaseDialog {
 
     private int getSpanCount(int gridWidth) {
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setTextSize(getContext().getResources().getDimension(R.dimen.ts_20));
+        paint.setTextSize(getContext().getResources().getDimension(R.dimen.ts_16));
         Rect bounds = new Rect();
         int maxTextWidth = 1;
         for (VodInfo.VodSeries episode : episodes) {
@@ -128,8 +128,8 @@ public class EpisodeDialog extends BaseDialog {
             paint.getTextBounds(name, 0, name.length(), bounds);
             maxTextWidth = Math.max(maxTextWidth, bounds.width());
         }
-        int itemPadding = getContext().getResources().getDimensionPixelSize(R.dimen.vs_10) * 2;
-        int itemMargin = getContext().getResources().getDimensionPixelSize(R.dimen.vs_5) * 2;
+        int itemPadding = getContext().getResources().getDimensionPixelSize(R.dimen.vs_6) * 2;
+        int itemMargin = getContext().getResources().getDimensionPixelSize(R.dimen.vs_2) * 2;
         int itemWidth = maxTextWidth + itemPadding + itemMargin;
         return Math.max(1, Math.min(4, gridWidth / Math.max(1, itemWidth)));
     }

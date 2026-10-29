@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipChildren="false"
-    android:clipToPadding="false"
-    android:orientation="vertical">
+    android:clipChildren="true"
+    android:clipToPadding="false">
 
     <com.owen.tvrecyclerview.widget.TvRecyclerView
         android:id="@+id/mGridView"
@@ -13,11 +12,53 @@
         android:layout_height="match_parent"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:paddingLeft="@dimen/vs_60"
-        android:paddingTop="@dimen/vs_10"
-        android:paddingRight="@dimen/vs_60"
+        android:paddingLeft="@dimen/vs_10"
+        android:paddingTop="@dimen/vs_2"
+        android:paddingRight="@dimen/vs_10"
         android:paddingBottom="@dimen/vs_10"
         app:tv_horizontalSpacingWithMargins="@dimen/vs_10"
-        app:tv_selectedItemIsCentered="true"
+        app:tv_selectedItemIsCentered="false"
         app:tv_verticalSpacingWithMargins="@dimen/vs_10" />
-</LinearLayout>
+
+    <!-- 下拉刷新提示图标：初始藏在分类行底边界之上，随下拉一起下移并旋转 -->
+    <ImageView
+        android:id="@+id/pullRefreshIcon"
+        android:layout_width="@dimen/vs_36"
+        android:layout_height="@dimen/vs_36"
+        android:layout_gravity="top|center_horizontal"
+        android:alpha="0"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter"
+        android:src="@drawable/icon_refresh" />
+
+    <!-- 刷新动画：双脉冲环 + 旋转图标，居中显示 -->
+    <FrameLayout
+        android:id="@+id/refreshAnimLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone">
+
+        <View
+            android:id="@+id/refreshPulseOuter"
+            android:layout_width="@dimen/vs_50"
+            android:layout_height="@dimen/vs_50"
+            android:layout_gravity="center"
+            android:background="@drawable/shape_refresh_ring" />
+
+        <View
+            android:id="@+id/refreshPulseInner"
+            android:layout_width="@dimen/vs_50"
+            android:layout_height="@dimen/vs_50"
+            android:layout_gravity="center"
+            android:background="@drawable/shape_refresh_ring" />
+
+        <ImageView
+            android:id="@+id/refreshSpin"
+            android:layout_width="@dimen/vs_36"
+            android:layout_height="@dimen/vs_36"
+            android:layout_gravity="center"
+            android:contentDescription="@null"
+            android:src="@drawable/icon_loading" />
+    </FrameLayout>
+</FrameLayout>

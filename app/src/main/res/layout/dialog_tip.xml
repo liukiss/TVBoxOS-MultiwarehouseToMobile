@@ -5,12 +5,14 @@
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:layout_width="@dimen/vs_440"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/vs_12"
+        android:layout_marginRight="@dimen/vs_12"
         android:background="@drawable/shape_danmu_setting_bg"
         android:orientation="vertical"
-        android:padding="@dimen/vs_30">
+        android:padding="@dimen/vs_16">
 
 
         <TextView
@@ -18,11 +20,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:lineSpacingExtra="@dimen/ts_50"
+            android:lineSpacingExtra="@dimen/vs_6"
             android:lineSpacingMultiplier="0"
             android:textAlignment="gravity"
             android:textColor="@color/dialog_text_primary"
-            android:textSize="@dimen/ts_24"
+            android:textSize="@dimen/ts_14"
             tools:text="1111111111111111111111111111111111111111111111111111" />
 
 
@@ -30,36 +32,38 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="@dimen/vs_30"
+            android:layout_marginTop="@dimen/vs_16"
             android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/leftBtn"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="@dimen/vs_30"
                 android:layout_gravity="center"
                 android:layout_marginRight="@dimen/vs_5"
                 android:background="@drawable/button_danmu_setting"
                 android:focusable="true"
                 android:gravity="center"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingRight="@dimen/vs_10"
                 android:text="纭畾"
                 android:textColor="@color/dialog_text_primary"
-                android:textSize="@dimen/ts_22" />
+                android:textSize="@dimen/ts_14" />
 
             <TextView
                 android:id="@+id/rightBtn"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="@dimen/vs_30"
                 android:layout_gravity="center"
                 android:layout_marginLeft="@dimen/vs_5"
                 android:background="@drawable/button_danmu_setting"
                 android:focusable="true"
                 android:gravity="center"
-                android:padding="@dimen/vs_10"
+                android:paddingLeft="@dimen/vs_10"
+                android:paddingRight="@dimen/vs_10"
                 android:text="鍙栨秷"
                 android:textColor="@color/dialog_text_primary"
-                android:textSize="@dimen/ts_22" />
+                android:textSize="@dimen/ts_14" />
         </LinearLayout>
 
     </LinearLayout>

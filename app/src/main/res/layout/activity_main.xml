@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- 单 Activity 架构：四个 Tab 页面在此容器内切换 -->
+    <FrameLayout
+        android:id="@+id/tabContainer"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/vs_0"
+        android:layout_weight="1" />
+
+    <!-- 常驻底部导航：不随 Tab 切换，位置固定 -->
+    <include
+        android:id="@+id/mainBottomBar"
+        layout="@layout/view_bottom_nav"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/vs_50" />
+</LinearLayout>

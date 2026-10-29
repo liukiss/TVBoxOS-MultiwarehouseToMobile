@@ -1,76 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/shape_bottom_sheet_bg"
+    android:orientation="vertical"
+    android:padding="@dimen/vs_14">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="@dimen/vs_720"
+    <View
+        android:id="@+id/dragHandle"
+        android:layout_width="@dimen/vs_36"
+        android:layout_height="@dimen/vs_4"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/dialog_text_hint" />
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:background="@drawable/shape_danmu_setting_bg"
-        android:clickable="true"
-        android:focusable="false">
+        android:layout_marginTop="@dimen/vs_8"
+        android:gravity="center"
+        android:lineSpacingExtra="@dimen/vs_4"
+        android:text="选择线路\n当前使用接口数据"
+        android:textColor="@color/dialog_text_primary"
+        android:textStyle="bold"
+        android:textSize="@dimen/ts_30" />
 
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:lineSpacingExtra="@dimen/ts_40"
-            android:lineSpacingMultiplier="0"
-            android:padding="@dimen/vs_20"
-            android:singleLine="true"
-            android:text="11111111"
-            android:textColor="@color/dialog_text_primary"
-            android:textStyle="bold"
-            android:textSize="@dimen/ts_26"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="11111111111111111111111" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/vs_8"
+        android:layout_weight="1"
+        android:clipToPadding="false" />
 
-        <com.owen.tvrecyclerview.widget.TvRecyclerView
-            android:id="@+id/list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingLeft="@dimen/vs_30"
-            android:paddingRight="@dimen/vs_30"
-            app:layout_constrainedHeight="true"
-            app:layout_constraintHeight_max="@dimen/vs_410"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/title"
-            app:tv_layoutManager="V7LinearLayoutManager"
-            app:tv_selectedItemIsCentered="true"
-            app:tv_verticalSpacingWithMargins="@dimen/vs_10" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/vs_30"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/list" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/vs_8"
+        android:gravity="right">
 
         <TextView
             android:id="@+id/btnClose"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/vs_20"
             android:background="@drawable/button_danmu_setting"
-            android:focusable="true"
             android:gravity="center"
-            android:paddingLeft="@dimen/vs_60"
+            android:paddingLeft="@dimen/vs_30"
             android:paddingTop="@dimen/vs_10"
-            android:paddingRight="@dimen/vs_60"
+            android:paddingRight="@dimen/vs_30"
             android:paddingBottom="@dimen/vs_10"
             android:text="关闭"
             android:textColor="@color/dialog_text_primary"
-            android:textSize="@dimen/ts_22"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/list" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</FrameLayout>
+            android:textSize="@dimen/ts_22" />
+    </LinearLayout>
+</LinearLayout>

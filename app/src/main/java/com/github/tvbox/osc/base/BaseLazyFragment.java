@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.PermissionChecker;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -22,7 +23,6 @@ import com.kingja.loadsir.core.LoadSir;
 
 import java.util.List;
 
-import me.jessyan.autosize.AutoSize;
 import me.jessyan.autosize.internal.CustomAdapt;
 
 /**
@@ -65,7 +65,9 @@ public abstract class BaseLazyFragment extends Fragment implements CustomAdapt {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        AutoSize.autoConvertDensity(getActivity(), getSizeInDp(), isBaseOnWidth());
+        // 手机版：不再在 Fragment 里单独应用 AutoSize。
+        // Activity 的 getResources() 已按当前显示尺寸校正基准后重写密度，
+        // Fragment 里再调用会用可能残留的横屏基准把竖屏页面放大。
         if (null == rootView) {
             rootView = inflater.inflate(getLayoutResID(), container, false);
         }
@@ -198,7 +200,6 @@ public abstract class BaseLazyFragment extends Fragment implements CustomAdapt {
      */
     @Override
     public void onResume() {
-        AutoSize.autoConvertDensity(getActivity(), getSizeInDp(), isBaseOnWidth());
         super.onResume();
         // 如果不是第一次可见
         if (!mIsFirstVisible) {
@@ -281,9 +282,26 @@ public abstract class BaseLazyFragment extends Fragment implements CustomAdapt {
         }
     }
 
+    protected boolean isLoading() {
+        if (mLoadService != null && mLoadService.getCurrentCallback() != null) {
+            return mLoadService.getCurrentCallback().equals(LoadingCallback.class);
+        }
+        return false;
+    }
+
     public void jumpActivity(Class<? extends BaseActivity> clazz) {
         Intent intent = new Intent(mContext, clazz);
         startActivity(intent);
+    }
+
+    public boolean hasPermission(String permission) {
+        boolean has = true;
+        try {
+            has = PermissionChecker.checkSelfPermission(mContext, permission) == PermissionChecker.PERMISSION_GRANTED;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return has;
     }
 
     public void jumpActivity(Class<? extends BaseActivity> clazz, Bundle bundle) {

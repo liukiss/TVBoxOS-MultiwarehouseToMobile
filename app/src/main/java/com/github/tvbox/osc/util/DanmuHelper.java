@@ -12,7 +12,8 @@ public class DanmuHelper {
     };
 
     public static boolean isOpen() {
-        return Hawk.get(HawkConfig.DANMU_OPEN, true);
+        // 手机版：弹幕默认关闭，可在设置中手动开启
+        return Hawk.get(HawkConfig.DANMU_OPEN, false);
     }
 
     public static void setOpen(boolean open) {

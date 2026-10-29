@@ -264,6 +264,10 @@ public class VodController extends BaseController {
     LockRunnable lockRunnable = new LockRunnable();
     private boolean isLock = false;
     private boolean previewMode = false;
+    // 竖屏视频自动转竖屏：每次进入播放器页只判定一次
+    private boolean autoPortraitDecisionDone = false;
+    // 新影片尚未真正起播前不判定，避免拿到上一部影片残留的分辨率
+    private boolean autoPortraitAwaitingPlayback = false;
     Handler myHandle;
     Runnable myRunnable;
     int myHandleSeconds = 10000;//闲置多少毫秒秒关闭底栏  默认6秒
@@ -287,6 +291,8 @@ public class VodController extends BaseController {
             String width = Integer.toString(mVideoSizes[0]);
             String height = Integer.toString(mVideoSizes[1]);
             mVideoSize.setText(width + " X " + height);
+            // 兜底：个别解码器在起播瞬间仍上报 0，后续轮询到有效尺寸后再判定
+            tryAutoEnterPortrait();
 
             mHandler.postDelayed(this, 1000);
         }
@@ -314,6 +320,84 @@ public class VodController extends BaseController {
         if (mLockView != null) {
             mLockView.setVisibility(INVISIBLE);
         }
+        if (!previewMode) {
+            // 每次进入播放器页都重新判定一次；已起播/已暂停时分辨率已知，可立即评估
+            autoPortraitDecisionDone = false;
+            autoPortraitAwaitingPlayback = videoPlayState != VideoView.STATE_PLAYING
+                    && videoPlayState != VideoView.STATE_PAUSED;
+            tryAutoEnterPortrait();
+            // 刚进入全屏时方向/尺寸可能尚未稳定，延迟补判两次
+            if (mHandler != null) {
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        tryAutoEnterPortrait();
+                    }
+                }, 400);
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        tryAutoEnterPortrait();
+                    }
+                }, 1200);
+            }
+        }
+    }
+
+    /** 换片/重新选剧集时允许重新判定一次 */
+    public void resetAutoPortraitDecision() {
+        autoPortraitDecisionDone = false;
+        autoPortraitAwaitingPlayback = true;
+    }
+
+    /**
+     * 当前视频是否为竖屏（高 &gt; 宽）。
+     * 供全屏入口在请求方向前预判，竖屏视频可免去“先横屏再转竖屏”的旋转过程。
+     * 尺寸未就绪（起播瞬间/切集后）返回 false，由 tryAutoEnterPortrait 兜底。
+     */
+    public boolean isCurrentVideoPortrait() {
+        if (mControlWrapper == null) return false;
+        int[] videoSize = mControlWrapper.getVideoSize();
+        return videoSize != null && videoSize.length >= 2 && videoSize[0] > 0 && videoSize[1] > videoSize[0];
+    }
+
+    /**
+     * 竖屏视频在全屏播放器内自动转竖屏。
+     * 详情页预览（previewMode）不处理；用户手动切换后不再干预；仅判定一次。
+     */
+    private void tryAutoEnterPortrait() {
+        if (previewMode || autoPortraitDecisionDone || autoPortraitAwaitingPlayback) return;
+        if (mActivity == null || mControlWrapper == null || mActivity.isFinishing()) return;
+        if (ScreenUtils.isTv(mActivity) || ScreenUtils.getSqrt(mActivity) >= 10.0) {
+            autoPortraitDecisionDone = true;
+            return;
+        }
+        int[] videoSize = mControlWrapper.getVideoSize();
+        if (videoSize == null || videoSize.length < 2 || videoSize[0] <= 0 || videoSize[1] <= 0) {
+            return; // 尺寸未就绪，等待下一次回调
+        }
+        if (videoSize[1] <= videoSize[0]) {
+            autoPortraitDecisionDone = true; // 横屏/方形视频：判定结束
+            return;
+        }
+        boolean configPortrait = mActivity.getResources().getConfiguration().orientation
+                == Configuration.ORIENTATION_PORTRAIT;
+        int requestedOrientation = mActivity.getRequestedOrientation();
+        boolean requestedPortrait = requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                || requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                || requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+        if (configPortrait) {
+            if (requestedPortrait) {
+                autoPortraitDecisionDone = true; // 已经是竖屏，无需旋转
+            }
+            // 否则：已请求横屏但配置尚未完成旋转，暂不锁定，等后续回调重试
+            return;
+        }
+        autoPortraitDecisionDone = true;
+        if (mLandscapePortraitBtn != null) {
+            mLandscapePortraitBtn.setText("横屏");
+        }
+        mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
     }
 
     @Override
@@ -1097,6 +1181,7 @@ public class VodController extends BaseController {
         }
         mLandscapePortraitBtn.setVisibility(showButton ? VISIBLE : GONE);
         if (showButton) mLandscapePortraitBtn.setText(isPortrait ? "横屏" : "竖屏");
+        tryAutoEnterPortrait();
     }
 
     private void updatePortraitMenu(boolean isPortrait) {
@@ -1137,6 +1222,8 @@ public class VodController extends BaseController {
 
     void setLandscapePortrait() {
         if (mActivity == null) return;
+        // 用户手动切换后，本次播放不再自动干预
+        autoPortraitDecisionDone = true;
         if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             mLandscapePortraitBtn.setText("竖屏");
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
@@ -1483,6 +1570,8 @@ public class VodController extends BaseController {
     @Override
     protected void updateSeekUI(int curr, int seekTo, int duration) {
         super.updateSeekUI(curr, seekTo, duration);
+        // 播放进度回调期间持续尝试判定，覆盖首次进入时尺寸上报偏晚的情况
+        tryAutoEnterPortrait();
         if (seekTo > curr) {
             mProgressIcon.setImageResource(R.drawable.exo_icon_fastforward);
         } else {
@@ -1502,6 +1591,7 @@ public class VodController extends BaseController {
             case VideoView.STATE_IDLE:
                 break;
             case VideoView.STATE_PLAYING:
+                autoPortraitAwaitingPlayback = false;
                 initLandscapePortraitBtnInfo();
                 startProgress();
                 break;
@@ -1849,7 +1939,8 @@ public class VodController extends BaseController {
 
     //尝试去bom
     public String getWebPlayUrlIfNeeded(String webPlayUrl) {
-        if (webPlayUrl != null && !webPlayUrl.contains("127.0.0.1:9978") &&  webPlayUrl.contains(".m3u8")) {
+        String localProxy = ControlManager.get().getAddress(true);
+        if (webPlayUrl != null && !localProxy.isEmpty() && !webPlayUrl.contains(localProxy) &&  webPlayUrl.contains(".m3u8")) {
             try {
                 String urlEncode = URLEncoder.encode(webPlayUrl, "UTF-8");
                 LOG.i("echo-BOM-------");
@@ -2051,12 +2142,7 @@ public class VodController extends BaseController {
 //            if(!selector.contains("click()"))js+=".click();";
             LOG.i("echo-javascript:" + js);
             if(web_view!=null){
-                //4.4以上才支持这种写法
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    web_view.evaluateJavascript(js, null);
-                } else {
-                    web_view.loadUrl("javascript:" + js);
-                }
+                web_view.evaluateJavascript(js, null);
             }
             if(xWalk_view!=null){
                 //4.0+开始全部支持这种写法

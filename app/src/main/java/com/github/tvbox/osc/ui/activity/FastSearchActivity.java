@@ -9,7 +9,6 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
-import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
@@ -164,7 +163,8 @@ public class FastSearchActivity extends BaseActivity {
         });
 
         mGridView.setHasFixedSize(true);
-        mGridView.setLayoutManager(new V7GridLayoutManager(this.mContext, 4));
+        // 手机版：每行 2 个结果，图片更大、文字信息显示更完整
+        mGridView.setLayoutManager(new V7GridLayoutManager(this.mContext, 2));
 
         searchAdapter = new FastSearchAdapter();
         mGridView.setAdapter(searchAdapter);
@@ -196,7 +196,7 @@ public class FastSearchActivity extends BaseActivity {
         });
 
 
-        mGridViewFilter.setLayoutManager(new V7GridLayoutManager(this.mContext, 4));
+        mGridViewFilter.setLayoutManager(new V7GridLayoutManager(this.mContext, 2));
         searchAdapterFilter = new FastSearchAdapter();
         mGridViewFilter.setAdapter(searchAdapterFilter);
         mGridViewFilter.setOnItemListener(new TvRecyclerView.OnItemListener() {
@@ -228,10 +228,11 @@ public class FastSearchActivity extends BaseActivity {
         setLoadSir(llLayout);
 
         // 分词
-        searchWordAdapter = new SearchWordAdapter();
+        // 手机版：搜索对象关键词改为左侧竖排按钮，样式与“全部”一致
+        searchWordAdapter = new SearchWordAdapter(R.layout.item_fast_search_object);
         mGridViewWordFenci = findViewById(R.id.mGridViewWordFenci);
         mGridViewWordFenci.setAdapter(searchWordAdapter);
-        mGridViewWordFenci.setLayoutManager(new V7LinearLayoutManager(this.mContext, 0, false));
+        mGridViewWordFenci.setLayoutManager(new V7LinearLayoutManager(this.mContext, 1, false));
         searchWordAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
@@ -1081,13 +1082,12 @@ public class FastSearchActivity extends BaseActivity {
 
     private void setSearchStatusText(String firstLine, String secondLine) {
         if (mSearchTitle == null) return;
-        String text = firstLine + "\n" + secondLine;
+        // 手机版：状态压成单行按钮，避免两行文字在紧凑按钮里显示不全
+        String text = firstLine + "  " + secondLine;
         SpannableString span = new SpannableString(text);
         int split = firstLine.length();
         span.setSpan(new StyleSpan(Typeface.BOLD), 0, split, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        span.setSpan(new RelativeSizeSpan(1.05f), 0, split, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        span.setSpan(new RelativeSizeSpan(0.78f), split + 1, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        span.setSpan(new ForegroundColorSpan(0xCCFFFFFF), split + 1, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        span.setSpan(new ForegroundColorSpan(0xCCFFFFFF), split, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         mSearchTitle.setText(span);
     }
 

@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,9 +14,7 @@ import androidx.annotation.NonNull;
 
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.event.RefreshEvent;
-import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.adapter.ApiHistoryDialogAdapter;
-import com.github.tvbox.osc.ui.tv.QRCodeGen;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.HistoryHelper;
 import com.hjq.permissions.OnPermissionCallback;
@@ -32,8 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.jessyan.autosize.utils.AutoSizeUtils;
-
 /**
  * 描述
  *
@@ -41,8 +36,6 @@ import me.jessyan.autosize.utils.AutoSizeUtils;
  * @since 2020/12/27
  */
 public class ApiDialog extends BaseDialog {
-    private ImageView ivQRCode;
-    private TextView tvAddress;
     private EditText inputApi;
     private EditText inputApiLive;
     private View inputConfirm;
@@ -60,14 +53,12 @@ public class ApiDialog extends BaseDialog {
     public ApiDialog(@NonNull @NotNull Context context) {
         super(context);
         setContentView(R.layout.dialog_api);
-        setCanceledOnTouchOutside(false);
-        ivQRCode = findViewById(R.id.ivQRCode);
-        tvAddress = findViewById(R.id.tvAddress);
+        setCanceledOnTouchOutside(true);
         inputApi = findViewById(R.id.input);
         inputApiLive = findViewById(R.id.inputLive);
         inputConfirm = findViewById(R.id.inputConfirm);
         //内置网络接口在此处添加
-        inputApi.setText(Hawk.get(HawkConfig.API_URL, ""));
+        inputApi.setText(Hawk.get(HawkConfig.API_URL, "https://tv.ysccn.top/xljk_nopermission.json"));
         inputApiLive.setText(Hawk.get(HawkConfig.LIVE_API_URL, Hawk.get(HawkConfig.API_URL)));
         findViewById(R.id.inputSubmit).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,6 +76,12 @@ public class ApiDialog extends BaseDialog {
             @Override
             public void onClick(View v) {
                 saveAndDismiss();
+            }
+        });
+        findViewById(R.id.apiBack).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
             }
         });
         findViewById(R.id.apiHistory).setOnClickListener(new View.OnClickListener() {
@@ -167,7 +164,6 @@ public class ApiDialog extends BaseDialog {
                 return false;
             }
         });
-        refreshQRCode();
     }
 
     private boolean isSoftKeyboardEnter(int actionId, KeyEvent event) {
@@ -184,14 +180,11 @@ public class ApiDialog extends BaseDialog {
         inputConfirm.requestFocus();
     }
 
-    private void refreshQRCode() {
-        String address = ControlManager.get().getAddress(false);
-        tvAddress.setText(String.format("手机/电脑扫描上方二维码或者直接浏览器访问地址\n%s", address));
-        ivQRCode.setImageBitmap(QRCodeGen.generateBitmap(address+"api.html", AutoSizeUtils.mm2px(getContext(), 300), AutoSizeUtils.mm2px(getContext(), 300)));
-    }
-
     private void saveAndDismiss() {
         String newApi = inputApi.getText().toString().trim();
+        if (newApi.isEmpty()) {
+            newApi = "https://tv.ysccn.top/xljk_nopermission.json";
+        }
         String newLiveApi = inputApiLive.getText().toString().trim();
         if (!newApi.isEmpty()) {
             HistoryHelper.setApiHistory(newApi);

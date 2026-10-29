@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
+    android:layout_marginLeft="@dimen/vs_16"
+    android:layout_marginRight="@dimen/vs_16"
     android:background="@drawable/shape_danmu_setting_bg"
     android:orientation="vertical"
-    android:padding="@dimen/vs_30">
+    android:padding="@dimen/vs_16">
 
     <TextView
-        android:layout_width="@dimen/vs_600"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:lineSpacingExtra="@dimen/ts_50"
-        android:lineSpacingMultiplier="0"
-        android:text="本软件只提供聚合展示功能，所有资源来自网上, 软件不参与任何制作, 上传, 储存, 下载等内容. 软件仅供学习参考, 请于安装后24小时内删除。\n\n打包分发请保留出处\nhttps://github.com/CatVodTVOfficial/TVBoxOSC\nhttps://github.com/q215613905/TVBoxOS\nhttps://github.com/liukiss/TVBoxOS-Multi-warehouse-version"
+        android:lineSpacingExtra="@dimen/vs_2"
+        android:lineSpacingMultiplier="1.2"
+        android:text="本软件源码资源来自网上，软件仅供学习自用，请勿传播。\n本软件基于q215613905/TVBoxOS，由啊搭理移植修改。"
         android:textColor="@color/dialog_text_primary"
-        android:textSize="@dimen/ts_24" />
+        android:textSize="@dimen/ts_14" />
 
 </LinearLayout>

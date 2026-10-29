@@ -1,32 +1,27 @@
 package com.github.tvbox.osc.ui.dialog;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.bean.MoreSourceBean;
-import com.github.tvbox.osc.server.ControlManager;
 import com.github.tvbox.osc.ui.adapter.MoreSourceAdapter;
-import com.github.tvbox.osc.ui.tv.QRCodeGen;
 import com.github.tvbox.osc.util.HawkConfig;
-import com.github.tvbox.osc.util.HistoryHelper;
 import com.github.tvbox.osc.util.MoreSourceHelper;
 import com.github.tvbox.osc.util.OkGoHelper;
-import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.orhanobut.hawk.Hawk;
 
 import org.json.JSONArray;
@@ -36,7 +31,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import me.jessyan.autosize.utils.AutoSizeUtils;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -65,15 +59,13 @@ public class MultiSourceDialog extends BaseDialog {
     private final Context mContext;
     private final OnMultiSourceListener mListener;
 
-    private TvRecyclerView mListView;
+    private RecyclerView mListView;
     private MoreSourceAdapter mAdapter;
     private EditText inputSourceName;
     private EditText inputSourceUrl;
     private View inputSubmit;
     private View delAll;
     private ProgressBar playLoading;
-    private TextView jumpWeb;
-    private ImageView qrCode;
 
     private final List<MoreSourceBean> storeHouse = new ArrayList<>();
     private final List<String> visitedUrls = new ArrayList<>(); // 链式防循环
@@ -90,6 +82,17 @@ public class MultiSourceDialog extends BaseDialog {
         loadData();
     }
 
+    @Override
+    public void show() {
+        prepareBottomSheet();
+        super.show();
+        applyBottomSheet(findViewById(R.id.dragHandle));
+        if (getWindow() != null) {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+                    | WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+        }
+    }
+
     private void initView() {
         mListView = findViewById(R.id.list);
         playLoading = findViewById(R.id.play_loading);
@@ -97,8 +100,6 @@ public class MultiSourceDialog extends BaseDialog {
         inputSourceUrl = findViewById(R.id.input_source_url);
         inputSubmit = findViewById(R.id.inputSubmit);
         delAll = findViewById(R.id.delAll);
-        jumpWeb = findViewById(R.id.jump_web);
-        qrCode = findViewById(R.id.qrCode);
 
         View btnClose = findViewById(R.id.btnClose);
         if (btnClose != null) {
@@ -160,14 +161,9 @@ public class MultiSourceDialog extends BaseDialog {
                 }
             }
         });
+        mListView.setLayoutManager(new LinearLayoutManager(mContext));
+        mListView.getRecycledViewPool().clear();
         mListView.setAdapter(mAdapter);
-        // v2.1.4：弹窗打开后默认聚焦列表首项（机顶盒遥控器 D-pad 可用）
-        mListView.post(new Runnable() {
-            @Override
-            public void run() {
-                mListView.requestFocus();
-            }
-        });
 
         inputSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -188,7 +184,6 @@ public class MultiSourceDialog extends BaseDialog {
                 MoreSourceHelper.resetAllConfig();
             }
         });
-        refreshQRCode();
     }
 
     private void loadData() {
@@ -210,28 +205,7 @@ public class MultiSourceDialog extends BaseDialog {
         mAdapter.setData(new ArrayList<>(storeHouse));
     }
 
-    private void refreshQRCode() {
-        try {
-            String address = ControlManager.get().getAddress(false);
-            jumpWeb.setText("扫码远程推送（多仓订阅链接）\n" + address);
-            Bitmap bitmap = QRCodeGen.generateBitmap(address + "api.html",
-                    AutoSizeUtils.mm2px(mContext, 260), AutoSizeUtils.mm2px(mContext, 260));
-            qrCode.setImageBitmap(bitmap);
-        } catch (Throwable th) {
-            th.printStackTrace();
-        }
-    }
-
     /* ---------- 添加仓库 ---------- */
-    /** 远程推送入口：外部（web 扫码推送）传入订阅链接，自动填入并添加 */
-    public void autoAdd(String url) {
-        if (url == null || url.isEmpty()) return;
-        if (inputSourceUrl != null) {
-            inputSourceUrl.setText(url);
-        }
-        addStoreHouse();
-    }
-
     private void addStoreHouse() {
         String url = inputSourceUrl.getText().toString().trim();
         if (url.isEmpty()) {

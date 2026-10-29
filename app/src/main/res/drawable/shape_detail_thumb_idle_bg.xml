@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <corners android:radius="@dimen/preview_player_radius" />
+    <!-- 手机版：播放区域改为矩形，去掉圆角 -->
     <solid android:color="@color/color_000000_30" />
     <stroke
         android:width="1px"

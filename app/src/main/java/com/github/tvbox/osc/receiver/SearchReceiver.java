@@ -3,12 +3,9 @@ package com.github.tvbox.osc.receiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 
-import com.github.tvbox.osc.event.ServerEvent;
-import com.github.tvbox.osc.ui.activity.SearchActivity;
-import com.github.tvbox.osc.util.AppManager;
-
-import org.greenrobot.eventbus.EventBus;
+import com.github.tvbox.osc.ui.activity.MainActivity;
 
 /**
  * @author pj567
@@ -21,15 +18,9 @@ public class SearchReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (action.equals(intent.getAction()) && intent.getExtras() != null) {
-            if (AppManager.getInstance().getActivity(SearchActivity.class) != null) {
-                AppManager.getInstance().backActivity(SearchActivity.class);
-                EventBus.getDefault().post(new ServerEvent(ServerEvent.SERVER_SEARCH, intent.getExtras().getString("title")));
-            } else {
-                Intent newIntent = new Intent(context, SearchActivity.class);
-                newIntent.putExtra("title", intent.getExtras().getString("title"));
-                newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                context.startActivity(newIntent);
-            }
+            Bundle args = new Bundle();
+            args.putString("title", intent.getExtras().getString("title"));
+            MainActivity.openTab(context, MainActivity.TAB_SEARCH, args);
         }
     }
 }

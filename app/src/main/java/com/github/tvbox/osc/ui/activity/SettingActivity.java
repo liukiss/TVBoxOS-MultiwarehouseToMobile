@@ -111,7 +111,7 @@ public class SettingActivity extends BaseActivity {
     }
 
     private void initData() {
-        currentApi = Hawk.get(HawkConfig.API_URL, "");
+        currentApi = Hawk.get(HawkConfig.API_URL, "https://tv.ysccn.top/xljk_nopermission.json");
         homeSourceKey = ApiConfig.get().getHomeSourceBean().getKey();
         homeRec = Hawk.get(HawkConfig.HOME_REC, HawkConfig.DEFAULT_HOME_REC);
         currentLiveApi = Hawk.get(HawkConfig.LIVE_API_URL, "");
@@ -182,15 +182,15 @@ public class SettingActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        if (currentApi.equals(Hawk.get(HawkConfig.API_URL, ""))) {
+        if (currentApi.equals(Hawk.get(HawkConfig.API_URL, "https://tv.ysccn.top/xljk_nopermission.json"))) {
             if (homeRec != Hawk.get(HawkConfig.HOME_REC, HawkConfig.DEFAULT_HOME_REC)) {
-                jumpActivity(HomeActivity.class, createBundle());
+                jumpActivity(MainActivity.class, createBundle());
             }else if(!currentLiveApi.equals(Hawk.get(HawkConfig.LIVE_API_URL, ""))){
-                jumpActivity(HomeActivity.class, createBundle());
+                jumpActivity(MainActivity.class, createBundle());
             }
         } else {
-            AppManager.getInstance().finishActivity(HomeActivity.class);
-            jumpActivity(HomeActivity.class);
+            AppManager.getInstance().finishActivity(MainActivity.class);
+            jumpActivity(MainActivity.class);
             finish();
             return;
         }

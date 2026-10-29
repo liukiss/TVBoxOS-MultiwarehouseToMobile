@@ -10,6 +10,7 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.bean.Movie;
+import com.github.tvbox.osc.ui.widget.RatioFrameLayout;
 import com.github.tvbox.osc.util.ImgUtil;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class GridAdapter extends BaseQuickAdapter<Movie.Video, BaseViewHolder> {
             String pic = item.pic == null ? "" : item.pic.trim();
             if (!TextUtils.isEmpty(pic)) {
                 if (ImgUtil.isBase64Image(pic)) {
-                    ivThumb.setImageBitmap(ImgUtil.decodeBase64ToBitmap(pic));
+                    ivThumb.setImageDrawable(ImgUtil.roundBitmap(mContext.getResources(), ImgUtil.decodeBase64ToBitmap(pic), AutoSizeUtils.mm2px(mContext, 10)));
                 } else {
                     ImgUtil.load(pic, ivThumb, AutoSizeUtils.mm2px(mContext, 10), AutoSizeUtils.mm2px(mContext, 240), AutoSizeUtils.mm2px(mContext, 336), item.name);
                 }
@@ -80,24 +81,31 @@ public class GridAdapter extends BaseQuickAdapter<Movie.Video, BaseViewHolder> {
         if (!TextUtils.isEmpty(pic)) {
             if (ImgUtil.isBase64Image(pic)) {
                 ivThumb.setImageBitmap(ImgUtil.decodeBase64ToBitmap(pic));
+                ivThumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
             } else {
-                ImgUtil.load(pic, ivThumb, AutoSizeUtils.mm2px(mContext, 10), AutoSizeUtils.mm2px(mContext, newWidth), AutoSizeUtils.mm2px(mContext, newHeight), item.name);
+                // 圆角交给 clipRounded 按 View 实际尺寸裁剪，这里不在解码尺寸上画圆角
+                ImgUtil.load(pic, ivThumb, 0, AutoSizeUtils.mm2px(mContext, newWidth), AutoSizeUtils.mm2px(mContext, newHeight), item.name);
             }
         } else {
             ivThumb.setImageDrawable(ImgUtil.createTextDrawable(item.name));
+            ivThumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
         }
         applyStyleToImage(ivThumb);
     }
 
     private void applyStyleToImage(final ImageView ivThumb) {
+        final ViewGroup container = (ViewGroup) ivThumb.getParent();
+        // 手机版：高度在测量阶段按站点比例算出（非 style 站点沿用 XML 固定高度），
+        // 不再布局完成后 post 改高，避免 RecyclerView 残留旧测量高度、行距随机变大。
+        if (container instanceof RatioFrameLayout) {
+            ((RatioFrameLayout) container).setRatio(style != null ? style.ratio : 0f);
+        }
         if (style != null) {
-            ViewGroup container = (ViewGroup) ivThumb.getParent();
-            int width = defaultWidth;
-            int height = (int) (width / style.ratio);
             ViewGroup.LayoutParams containerParams = container.getLayoutParams();
-            containerParams.height = AutoSizeUtils.mm2px(mContext, height);
-            containerParams.width = AutoSizeUtils.mm2px(mContext, width);
+            containerParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
             container.setLayoutParams(containerParams);
         }
+        // 圆角与非 style 站点的卡片圆角背景保持一致
+        ImgUtil.clipRounded(ivThumb, AutoSizeUtils.mm2px(mContext, 10));
     }
 }

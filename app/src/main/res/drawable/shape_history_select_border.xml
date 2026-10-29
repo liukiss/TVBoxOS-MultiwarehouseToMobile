@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 手机版：历史页多选态选中海报的描边 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <corners android:radius="10mm" />
+    <solid android:color="@android:color/transparent" />
+    <stroke
+        android:width="@dimen/vs_2"
+        android:color="@color/color_02F8E1" />
+</shape>

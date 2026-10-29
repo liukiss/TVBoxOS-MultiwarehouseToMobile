@@ -5,10 +5,13 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.bean.MoreSourceBean;
@@ -16,7 +19,6 @@ import com.github.tvbox.osc.ui.adapter.LineSelectAdapter;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.MoreSourceHelper;
 import com.github.tvbox.osc.util.OkGoHelper;
-import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.orhanobut.hawk.Hawk;
 
 import org.json.JSONArray;
@@ -51,7 +53,7 @@ public class LineSelectDialog extends BaseDialog {
     private final boolean showHistory;
     private final OnLineSelectedListener mListener;
 
-    private TvRecyclerView mListView;
+    private RecyclerView mListView;
     private LineSelectAdapter mAdapter;
     private final List<MoreSourceBean> lineList = new ArrayList<>();
     private final Handler mHandler = new Handler(Looper.getMainLooper());
@@ -65,6 +67,17 @@ public class LineSelectDialog extends BaseDialog {
         setContentView(R.layout.dialog_api_history);
         setCanceledOnTouchOutside(true); // 点击弹窗外自动关闭
         initView();
+    }
+
+    @Override
+    public void show() {
+        prepareBottomSheet();
+        super.show();
+        applyBottomSheet(findViewById(R.id.dragHandle));
+        if (getWindow() != null) {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+                    | WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+        }
     }
 
     private void initView() {
@@ -91,24 +104,16 @@ public class LineSelectDialog extends BaseDialog {
                 MoreSourceHelper.resetAutoCounter(MoreSourceHelper.KEY_AUTO_NAME_LINE,
                         MoreSourceHelper.AUTO_PREFIX_LINE, MoreSourceHelper.getLineHistory());
                 mAdapter.setData(new ArrayList<>(lineList));
-                focusList();
             }
         });
+        mListView.setLayoutManager(new LinearLayoutManager(mContext));
+        mListView.getRecycledViewPool().clear();
         mListView.setAdapter(mAdapter);
 
         // 关闭按钮 / 点击弹窗外关闭
         View btnClose = findViewById(R.id.btnClose);
         if (btnClose != null) {
             btnClose.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dismiss();
-                }
-            });
-        }
-        View root = findViewById(R.id.root);
-        if (root != null) {
-            root.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     dismiss();
@@ -129,7 +134,6 @@ public class LineSelectDialog extends BaseDialog {
         lineList.clear();
         String current = Hawk.get(HawkConfig.API_URL, "");
         mAdapter.setCurrentUrl(current);
-        focusList();
 
         if (showHistory) {
             // 线路切换入口：已保存线路（不含 TVBox 原生配置历史）
@@ -149,7 +153,7 @@ public class LineSelectDialog extends BaseDialog {
         // 无选中仓库 → 直接展示当前列表（纯仓库模式下为空）
         if (selectedStore == null || selectedStore.getSourceUrl() == null || selectedStore.getSourceUrl().isEmpty()) {
             mAdapter.setData(new ArrayList<>(lineList));
-            focusList();
+
             return;
         }
 
@@ -187,7 +191,7 @@ public class LineSelectDialog extends BaseDialog {
                         if (!TextUtils.isEmpty(err)) {
                             Toast.makeText(mContext, "线路加载失败:" + err, Toast.LENGTH_SHORT).show();
                             mAdapter.setData(new ArrayList<>(lineList));
-                            focusList();
+                
                             return;
                         }
                         parseLines(res, url);
@@ -217,7 +221,7 @@ public class LineSelectDialog extends BaseDialog {
                     }
                 }
                 mAdapter.setData(new ArrayList<>(lineList));
-                focusList();
+    
                 return;
             }
             JSONArray urls = json.getJSONArray("urls");
@@ -244,21 +248,12 @@ public class LineSelectDialog extends BaseDialog {
             lineList.clear();
             lineList.addAll(map.values());
             mAdapter.setData(new ArrayList<>(lineList));
-            focusList();
+
         } catch (Throwable th) {
             Toast.makeText(mContext, "接口无效，请更换接口" + th.getMessage(), Toast.LENGTH_SHORT).show();
             mAdapter.setData(new ArrayList<>(lineList));
-            focusList();
+
         }
     }
 
-    /** v2.1.4：列表数据就绪后把遥控器焦点交给列表（TV D-pad 可选中线路/删除） */
-    private void focusList() {
-        mListView.post(new Runnable() {
-            @Override
-            public void run() {
-                mListView.requestFocus();
-            }
-        });
-    }
 }

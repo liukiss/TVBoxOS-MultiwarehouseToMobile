@@ -4,11 +4,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
+import android.view.View;
+import android.view.ViewOutlineProvider;
 import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
@@ -47,6 +50,28 @@ public class ImgUtil {
     public static int defaultWidth = 244;
     public static int defaultHeight = 320;
 
+    /**
+     * 手机版：按 View 的实际像素尺寸把内容裁剪成圆角矩形（API 21+）。
+     * Glide 的 RoundedCorners 是在解码尺寸上画圆角，再下采样到 View 后圆角会被同比缩小，
+     * 与非 style 站点卡片背景的 10mm 圆角对不上（表现为海报悬浮在圆角背景之上）；
+     * 这里按 View 自身尺寸裁剪，圆角半径与背景完全一致。
+     */
+    public static void clipRounded(final View view, final int radius) {
+        if (view == null || radius <= 0) return;
+        clipRoundedLollipop(view, radius);
+    }
+
+    private static void clipRoundedLollipop(final View view, final int radius) {
+        view.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View v, Outline outline) {
+                if (v.getWidth() <= 0 || v.getHeight() <= 0) return;
+                outline.setRoundRect(0, 0, v.getWidth(), v.getHeight(), radius);
+            }
+        });
+        view.setClipToOutline(true);
+    }
+
     public static class Style {
         public float ratio;
         public String type;
@@ -76,10 +101,9 @@ public class ImgUtil {
     public static int spanCountByStyle(Style style, int defaultCount) {
         int spanCount = defaultCount;
         if ("rect".equals(style.type)) {
-            if (style.ratio >= 1.7) {
+            // 手机版：横版比例（>=1.3）的站点统一 3 列，4 列会把卡片压得过矮、标签挤满封面
+            if (style.ratio >= 1.3) {
                 spanCount = 3;
-            } else if (style.ratio >= 1.3) {
-                spanCount = 4;
             }
         } else if ("list".equals(style.type)) {
             spanCount = 1;
@@ -98,6 +122,15 @@ public class ImgUtil {
         String base64Data = base64Str.substring(base64Str.indexOf(",") + 1);
         byte[] decodedBytes = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+    }
+
+    /** 手机版：base64 海报同样按卡片圆角裁剪，保持与背景形状一致 */
+    public static android.graphics.drawable.Drawable roundBitmap(android.content.res.Resources res, Bitmap bitmap, int radius) {
+        androidx.core.graphics.drawable.RoundedBitmapDrawable drawable =
+                androidx.core.graphics.drawable.RoundedBitmapDrawableFactory.create(res, bitmap);
+        drawable.setCornerRadius(radius);
+        drawable.setAntiAlias(true);
+        return drawable;
     }
 
     public static void load(String url, ImageView view, int roundingRadius) {

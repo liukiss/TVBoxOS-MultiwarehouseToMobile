@@ -7,7 +7,6 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,7 +40,7 @@ public class CastDeviceDialog extends BaseDialog {
     private final DeviceAdapter adapter = new DeviceAdapter();
     private OnCastListener onCastListener;
     private TextView title;
-    private ProgressBar progressBar;
+    private View progressBar;
     private TextView tvScanning;
     private TextView tvEmpty;
     private boolean searchFinished;

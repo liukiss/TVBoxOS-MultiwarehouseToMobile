@@ -7,18 +7,18 @@
     android:focusable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="@dimen/vs_15">
+    android:padding="@dimen/vs_10">
 
     <ImageView
         android:id="@+id/ivDeviceIcon"
-        android:layout_width="@dimen/vs_50"
-        android:layout_height="@dimen/vs_50"
+        android:layout_width="@dimen/vs_32"
+        android:layout_height="@dimen/vs_32"
         android:src="@drawable/ic_cast_device" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/vs_15"
+        android:layout_marginLeft="@dimen/vs_10"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -30,22 +30,22 @@
             android:marqueeRepeatLimit="marquee_forever"
             android:singleLine="true"
             android:textColor="@color/dialog_text_primary"
-            android:textSize="@dimen/ts_20"
+            android:textSize="@dimen/ts_14"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvDeviceIp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/vs_5"
+            android:layout_marginTop="@dimen/vs_2"
             android:singleLine="true"
             android:textColor="@color/dialog_text_hint"
-            android:textSize="@dimen/ts_16" />
+            android:textSize="@dimen/ts_10" />
     </LinearLayout>
 
     <ImageView
-        android:layout_width="@dimen/vs_30"
-        android:layout_height="@dimen/vs_30"
+        android:layout_width="@dimen/vs_20"
+        android:layout_height="@dimen/vs_20"
         android:src="@drawable/ic_cast_arrow" />
 
 </LinearLayout>

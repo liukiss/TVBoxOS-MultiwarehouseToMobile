@@ -28,15 +28,10 @@
 			android:scaleType="fitCenter"
 			android:visibility="gone" />
 
-		<ProgressBar
-			style="?android:attr/progressBarStyleSmall"
-			android:layout_width="45dp"
-			android:layout_height="45dp"
-			android:layout_gravity="center"
-			android:scaleX="0.75"
-			android:scaleY="0.75"
-			android:indeterminateDrawable="@drawable/anim_loading"
-			android:indeterminate="true" />
+		<com.github.tvbox.osc.ui.tv.widget.LoadingRingView
+			android:layout_width="@dimen/vs_36"
+			android:layout_height="@dimen/vs_36"
+			android:layout_gravity="center" />
 	</FrameLayout>
 
 	<TextView
@@ -44,7 +39,7 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_gravity="top|end"
-		android:layout_margin="20dp"
+		android:layout_margin="@dimen/vs_20"
 		android:background="@android:color/transparent"
 		android:clickable="false"
 		android:focusable="false"
@@ -53,7 +48,7 @@
 		android:shadowDy="2"
 		android:shadowRadius="1"
 		android:textColor="@android:color/white"
-		android:textSize="96sp"
+		android:textSize="@dimen/ts_60"
 		android:textStyle="bold"
 		android:visibility="invisible" />
 
@@ -62,19 +57,19 @@
 		android:layout_width="wrap_content"
 		android:layout_height="match_parent"
 		android:layout_gravity="left|center_vertical"
-		android:layout_margin="0dp"
+		android:layout_margin="@dimen/vs_0"
 		android:baselineAligned="false"
 		android:orientation="horizontal"
-		android:padding="0dp">
+		android:padding="@dimen/vs_0">
 
 		<LinearLayout
 			android:id="@+id/ll_typeSelect"
 			android:layout_width="wrap_content"
 			android:layout_height="match_parent"
-			android:layout_margin="0dp"
+			android:layout_margin="@dimen/vs_0"
 			android:background="@drawable/bg_channel_list_left"
 			android:baselineAligned="false"
-			android:padding="0dp">
+			android:padding="@dimen/vs_0">
 
 			<LinearLayout
 				android:layout_width="wrap_content"
@@ -84,12 +79,12 @@
 
 				<com.owen.tvrecyclerview.widget.TvRecyclerView
 					android:id="@+id/mGroupGridView"
-					android:layout_width="@dimen/vs_220"
+					android:layout_width="@dimen/vs_70"
 					android:layout_height="wrap_content"
 					android:divider="@null"
 					android:fadeScrollbars="false"
 					android:listSelector="@drawable/item_bg_selector_left"
-					android:padding="10dp"
+					android:padding="@dimen/vs_2"
 					android:scrollbars="none" />
 
 			</LinearLayout>
@@ -110,11 +105,11 @@
 
 				<TextView
 					android:id="@+id/tv_arrow0"
-					android:layout_width="20dp"
+					android:layout_width="@dimen/vs_20"
 					android:layout_height="match_parent"
 					android:gravity="center"
 					android:onClick="divLoadEpgLeft"
-					android:paddingBottom="5dp"
+					android:paddingBottom="@dimen/vs_5"
 					android:shadowColor="#CC000000"
 					android:shadowDx="5.0"
 					android:shadowRadius="5.0"
@@ -125,22 +120,22 @@
 
 				<ImageView
 					android:id="@+id/iv_arrow2"
-					android:layout_width="20dp"
-					android:layout_height="20dp"
+					android:layout_width="@dimen/vs_20"
+					android:layout_height="@dimen/vs_20"
 					android:gravity="center|left"
 					android:onClick="divLoadEpgLeft"
-					android:paddingLeft="-5dp"
-					android:paddingTop="5dp"
+					android:paddingLeft="@dimen/vs_5_"
+					android:paddingTop="@dimen/vs_5"
 					android:src="@drawable/scrollviewleft"
 					tools:ignore="RtlHardcoded,RtlSymmetry,UsingOnClickInXml" />
 
 				<TextView
 					android:id="@+id/tv_arrow3"
-					android:layout_width="20dp"
+					android:layout_width="@dimen/vs_20"
 					android:layout_height="match_parent"
 					android:gravity="center"
 					android:onClick="divLoadEpgLeft"
-					android:paddingTop="5dp"
+					android:paddingTop="@dimen/vs_5"
 					android:shadowColor="#CC000000"
 					android:shadowDx="5.0"
 					android:shadowRadius="5.0"
@@ -150,27 +145,27 @@
 			</LinearLayout>
 
 			<LinearLayout
-				android:layout_width="1dp"
+				android:layout_width="@dimen/vs_1"
 				android:layout_height="match_parent"
-				android:layout_margin="1dp"
+				android:layout_margin="@dimen/vs_1"
 				android:background="#FF333333" />
 
 			<com.owen.tvrecyclerview.widget.TvRecyclerView
 				android:id="@+id/mChannelGridView"
-				android:layout_width="@dimen/vs_300"
+				android:layout_width="@dimen/vs_160"
 				android:layout_height="match_parent"
 				android:divider="@null"
 				android:fadeScrollbars="false"
 				android:focusable="true"
 				android:listSelector="@drawable/item_bg_selector_right"
-				android:padding="5dp"
+				android:padding="@dimen/vs_2"
 				android:scrollbars="none" />
 
 			<LinearLayout
 				android:id="@+id/divLoadEpgDivider"
-				android:layout_width="1dp"
+				android:layout_width="@dimen/vs_1"
 				android:layout_height="match_parent"
-				android:layout_margin="2dp"
+				android:layout_margin="@dimen/vs_2"
 				android:background="#FF333333"
 				android:orientation="horizontal" />
 
@@ -187,11 +182,11 @@
 
 				<TextView
 					android:id="@+id/tv_arrow"
-					android:layout_width="20dp"
+					android:layout_width="@dimen/vs_20"
 					android:layout_height="match_parent"
 					android:gravity="center"
 					android:onClick="divLoadEpgRight"
-					android:paddingBottom="5dp"
+					android:paddingBottom="@dimen/vs_5"
 					android:shadowColor="#CC000000"
 					android:shadowDx="5.0"
 					android:shadowRadius="5.0"
@@ -201,22 +196,22 @@
 
 				<ImageView
 					android:id="@+id/iv_arrow"
-					android:layout_width="20dp"
-					android:layout_height="20dp"
+					android:layout_width="@dimen/vs_20"
+					android:layout_height="@dimen/vs_20"
 					android:layout_gravity="center"
-					android:layout_marginLeft="1dp"
+					android:layout_marginLeft="@dimen/vs_1"
 					android:gravity="center|left"
 					android:onClick="divLoadEpgRight"
-					android:paddingTop="5dp"
+					android:paddingTop="@dimen/vs_5"
 					android:src="@drawable/scrollview" />
 
 				<TextView
 					android:id="@+id/tv_arrow2"
-					android:layout_width="20dp"
+					android:layout_width="@dimen/vs_20"
 					android:layout_height="match_parent"
 					android:gravity="center"
 					android:onClick="divLoadEpgRight"
-					android:paddingTop="5dp"
+					android:paddingTop="@dimen/vs_5"
 					android:shadowColor="#CC000000"
 					android:shadowDx="5.0"
 					android:shadowRadius="5.0"
@@ -226,7 +221,7 @@
 			</LinearLayout>
 			<LinearLayout
 				android:id="@+id/divEPG"
-				android:layout_width="@dimen/vs_360"
+				android:layout_width="@dimen/vs_280"
 				android:layout_height="match_parent"
 				android:layout_gravity="center_horizontal"
 				android:orientation="horizontal"
@@ -234,17 +229,17 @@
 
 				<com.owen.tvrecyclerview.widget.TvRecyclerView
 					android:id="@+id/mEpgDateGridView"
-					android:layout_width="@dimen/vs_100"
+					android:layout_width="@dimen/vs_80"
 					android:layout_height="wrap_content"
-					android:paddingLeft="5mm"
-					android:paddingTop="10mm"
-					android:paddingRight="5mm"
-					android:paddingBottom="10mm"
+					android:paddingLeft="@dimen/vs_5"
+					android:paddingTop="@dimen/vs_10"
+					android:paddingRight="@dimen/vs_5"
+					android:paddingBottom="@dimen/vs_10"
 					android:visibility="visible"
 					android:listSelector="@drawable/item_bg_selector_right"
 					android:layout_gravity="center_vertical"
 					app:tv_selectedItemIsCentered="true"
-					app:tv_verticalSpacingWithMargins="10mm" />
+					app:tv_verticalSpacingWithMargins="@dimen/vs_10" />
 				<com.owen.tvrecyclerview.widget.TvRecyclerView
 					android:id="@+id/lv_epg"
 					android:layout_width="match_parent"
@@ -255,16 +250,16 @@
 					app:tv_selectedItemIsCentered="true"
 					android:visibility="visible"
 					android:scrollbars = "vertical"
-					app:tv_verticalSpacingWithMargins="10mm" />
+					app:tv_verticalSpacingWithMargins="@dimen/vs_10" />
 
 				<TextView
 					android:id="@+id/txtNoEpg"
-					android:layout_width="@dimen/vs_300"
+					android:layout_width="@dimen/vs_280"
 					android:layout_height="match_parent"
 					android:layout_gravity="center"
-					android:layout_marginTop="50px"
+					android:layout_marginTop="@dimen/vs_50"
 					android:gravity="center"
-					android:paddingLeft="5dp"
+					android:paddingLeft="@dimen/vs_5"
 					android:text="暂无节目信息…"
 					android:textColor="@color/color_FF0057"
 					android:visibility="gone" />
@@ -277,9 +272,9 @@
 
     <LinearLayout
         android:id="@+id/tvRightSettingLayout"
-        android:layout_width="@dimen/vs_640"
+        android:layout_width="@dimen/vs_200"
         android:layout_height="match_parent"
-        android:layout_margin="0dp"
+        android:layout_margin="@dimen/vs_0"
         android:layout_gravity="right"
 		android:background="@drawable/bg_channel_list_right"
 		android:gravity="center_vertical"
@@ -288,38 +283,38 @@
 
         <com.owen.tvrecyclerview.widget.TvRecyclerView
             android:id="@+id/mSettingItemView"
-            android:layout_width="@dimen/vs_420"
+            android:layout_width="@dimen/vs_130"
             android:layout_height="match_parent"
             android:divider="@null"
             android:fadeScrollbars="false"
             android:gravity= "center"
             android:listSelector="@drawable/item_bg_selector_left"
-            android:padding="5dp"
+            android:padding="@dimen/vs_3"
             android:scrollbars="none"
             android:visibility="visible"
             app:tv_selectedItemIsCentered="true"
-            app:tv_verticalSpacingWithMargins="4mm" />
+            app:tv_verticalSpacingWithMargins="@dimen/vs_1" />
 
         <View
-            android:layout_width="1dp"
+            android:layout_width="@dimen/vs_1"
             android:layout_height="match_parent"
-            android:layout_margin="1dp"
+            android:layout_margin="@dimen/vs_1"
             android:layout_gravity="center_horizontal"
             android:background="#FF333333" />
 
         <com.owen.tvrecyclerview.widget.TvRecyclerView
             android:id="@+id/mSettingGroupView"
-            android:layout_width="@dimen/vs_200"
+            android:layout_width="@dimen/vs_65"
             android:layout_height="match_parent"
             android:divider="@null"
             android:fadeScrollbars="false"
             android:gravity= "center"
             android:listSelector="@drawable/item_bg_selector_right"
-            android:padding="10dp"
+            android:padding="@dimen/vs_3"
             android:scrollbars="none"
             android:visibility="visible"
             app:tv_selectedItemIsCentered="true"
-            app:tv_verticalSpacingWithMargins="4mm" />
+            app:tv_verticalSpacingWithMargins="@dimen/vs_1" />
     </LinearLayout>
 
     <TextView
@@ -327,14 +322,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
-        android:layout_marginTop="30mm"
-        android:layout_marginRight="60mm"
+        android:layout_marginTop="@dimen/vs_30"
+        android:layout_marginRight="@dimen/vs_60"
         android:background="@drawable/shape_live_channel_num"
         android:gravity="center"
-        android:paddingTop="5mm"
-        android:paddingBottom="5mm"
+        android:paddingTop="@dimen/vs_5"
+        android:paddingBottom="@dimen/vs_5"
         android:textColor="@android:color/white"
-        android:textSize="36mm"
+        android:textSize="@dimen/ts_40"
         android:textStyle="bold"
         android:visibility="gone" />
 
@@ -343,8 +338,8 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_gravity="right|top"
-		android:layout_marginTop="5mm"
-		android:layout_marginRight="20mm"
+		android:layout_marginTop="@dimen/vs_5"
+		android:layout_marginRight="@dimen/vs_20"
 		android:gravity="center_vertical"
 		android:background="@drawable/shape_live_resolution_badge"
 		android:paddingLeft="@dimen/vs_10"
@@ -362,7 +357,7 @@
 			android:gravity="center"
 			android:includeFontPadding="false"
 			android:textColor="@android:color/white"
-			android:textSize="22mm"
+			android:textSize="@dimen/ts_22"
 			android:visibility="gone"
 			tools:text="968bps"
 			tools:ignore="RtlCompat" />
@@ -375,7 +370,7 @@
 			android:gravity="center"
 			android:includeFontPadding="false"
 			android:textColor="@android:color/white"
-			android:textSize="22mm"
+			android:textSize="@dimen/ts_22"
 			android:visibility="gone" />
 	</LinearLayout>
 
@@ -384,38 +379,38 @@
 		android:layout_gravity="bottom|center"
 		android:gravity="center_vertical"
 		android:id="@+id/ll_epg"
-		android:paddingBottom="5dp"
+		android:paddingBottom="@dimen/vs_3"
 		android:layout_width="match_parent"
-		android:layout_height="@dimen/vs_140">
+		android:layout_height="@dimen/vs_76">
 		<View
 			android:id="@+id/view_bg"
 			android:background="@drawable/shape_user_focus"
 			android:layout_width="wrap_content"
-			android:layout_height="@dimen/vs_128"
+			android:layout_height="@dimen/vs_70"
 			android:layout_alignParentLeft="true"
 			android:layout_alignParentBottom="true" />
 
 		<LinearLayout
 			android:id="@+id/channelinfo"
-			android:layout_width="@dimen/vs_270"
+			android:layout_width="@dimen/vs_150"
 			android:layout_height="match_parent"
-			android:layout_marginStart="@dimen/vs_5"
-			android:layout_marginLeft="@dimen/vs_5"
-			android:layout_marginEnd="@dimen/vs_5"
-			android:layout_marginRight="@dimen/vs_5"
+			android:layout_marginStart="@dimen/vs_3"
+			android:layout_marginLeft="@dimen/vs_3"
+			android:layout_marginEnd="@dimen/vs_3"
+			android:layout_marginRight="@dimen/vs_3"
 			android:layout_gravity="bottom"
 			android:orientation="vertical">
 		<TextView
 			android:id="@+id/tv_channel_bottom_number"
-			android:layout_width="@dimen/vs_200"
+			android:layout_width="@dimen/vs_110"
 			android:layout_height="wrap_content"
 			android:layout_above="@+id/view_line"
 			android:layout_alignParentLeft="true"
 			android:layout_alignParentTop="true"
 			android:layout_gravity="center"
-			android:layout_marginLeft="20mm"
-			android:layout_marginTop="5mm"
-			android:layout_marginBottom="-14dp"
+			android:layout_marginLeft="@dimen/vs_8"
+			android:layout_marginTop="@dimen/vs_2"
+			android:layout_marginBottom="@dimen/vs_5_"
 			android:ellipsize="marquee"
 			android:gravity="center"
 			android:marqueeRepeatLimit="marquee_forever"
@@ -426,22 +421,22 @@
 			android:text="10"
 			android:visibility="gone"
 			android:textColor="@color/color_FFFFFF"
-			android:textSize="@dimen/ts_100"
+			android:textSize="@dimen/ts_18"
 			android:textStyle="bold" />
 			<FrameLayout
-				android:layout_width="@dimen/vs_220"
-				android:layout_height="@dimen/vs_60"
-				android:layout_marginStart="@dimen/vs_10"
-				android:layout_marginLeft="@dimen/vs_10"
-				android:layout_marginEnd="@dimen/vs_10"
-				android:layout_marginRight="@dimen/vs_10"
-				android:layout_marginTop="@dimen/vs_10"
+				android:layout_width="@dimen/vs_120"
+				android:layout_height="@dimen/vs_32"
+				android:layout_marginStart="@dimen/vs_4"
+				android:layout_marginLeft="@dimen/vs_4"
+				android:layout_marginEnd="@dimen/vs_4"
+				android:layout_marginRight="@dimen/vs_4"
+				android:layout_marginTop="@dimen/vs_4"
 				android:layout_gravity="center"
 				>
 				<FrameLayout
 					android:id="@+id/live_icon_null_bg"
-					android:layout_width="@dimen/vs_100"
-					android:layout_height="@dimen/vs_60"
+					android:layout_width="@dimen/vs_60"
+					android:layout_height="@dimen/vs_32"
 					android:layout_gravity="center">
 				</FrameLayout>
 				<TextView
@@ -453,13 +448,13 @@
 					android:ellipsize='marquee'
 					android:singleLine="true"
 					android:textColor="@android:color/white"
-					android:textSize="@dimen/vs_50"
+					android:textSize="@dimen/ts_18"
 					android:textStyle="bold"
 					tools:ignore="EllipsizeMaxLines" />
 				<ImageView
 					android:id="@+id/img_live_icon"
-					android:layout_width="@dimen/vs_180"
-					android:layout_height="@dimen/vs_60"
+					android:layout_width="@dimen/vs_100"
+					android:layout_height="@dimen/vs_32"
 					android:layout_gravity="center"
 					android:src="@drawable/app_banner"
 					android:scaleType="centerInside" />
@@ -467,7 +462,7 @@
 			</FrameLayout>
 		<com.github.tvbox.osc.ui.tv.widget.MarqueeTextView
 			android:id="@+id/tv_channel_bar_name"
-			android:layout_width="@dimen/vs_200"
+			android:layout_width="@dimen/vs_110"
 			android:layout_height="wrap_content"
 			android:layout_alignStart="@+id/tv_channel_bottom_number"
 			android:layout_alignLeft="@+id/tv_channel_bottom_number"
@@ -476,18 +471,18 @@
 
 			android:layout_alignParentBottom="true"
 			android:layout_gravity="center|bottom"
-			android:layout_marginStart="5dp"
-			android:layout_marginLeft="5dp"
-			android:layout_marginEnd="5dp"
-			android:layout_marginRight="5dp"
+			android:layout_marginStart="@dimen/vs_3"
+			android:layout_marginLeft="@dimen/vs_3"
+			android:layout_marginEnd="@dimen/vs_3"
+			android:layout_marginRight="@dimen/vs_3"
 			android:layout_marginTop="@dimen/vs_0"
 			android:ellipsize="marquee"
 			android:gravity="center"
-			android:paddingTop="0dp"
+			android:paddingTop="@dimen/vs_0"
 			android:singleLine="true"
 			android:text="CCTV 高清"
 			android:textColor="@color/color_FFFFFF"
-			android:textSize="@dimen/ts_34" />
+			android:textSize="@dimen/ts_16" />
 
 		</LinearLayout>
 		<TextView
@@ -496,14 +491,14 @@
 			android:layout_height="wrap_content"
 			android:layout_alignTop="@+id/view_bg"
 			android:layout_marginLeft="@dimen/vs_0"
-			android:layout_marginTop="@dimen/vs_40"
+			android:layout_marginTop="@dimen/vs_16"
 			android:layout_toRightOf="@+id/channelinfo"
 			android:gravity="center"
 			android:text=""
 			android:textColor="@color/color_FFFFFF"
-			android:textSize="@dimen/ts_26" />
+			android:textSize="@dimen/ts_14" />
 		<com.github.tvbox.osc.ui.tv.widget.MarqueeTextView
-			android:textSize="@dimen/ts_26"
+			android:textSize="@dimen/ts_14"
 			android:textColor="@color/color_FFFFFF"
 			android:ellipsize="marquee"
 			android:id="@+id/tv_current_program_time"
@@ -518,44 +513,44 @@
 
 		<com.github.tvbox.osc.ui.tv.widget.MarqueeTextView
 			android:id="@+id/tv_current_program_name"
-			android:layout_width="@dimen/vs_440"
+			android:layout_width="@dimen/vs_300"
 			android:layout_height="wrap_content"
 			android:layout_alignTop="@+id/tv_current_program"
 			android:layout_alignParentEnd="true"
 			android:layout_alignParentRight="true"
-			android:layout_marginStart="26px"
-			android:layout_marginLeft="26px"
-			android:layout_marginEnd="@dimen/vs_20"
-			android:layout_marginRight="@dimen/vs_20"
+			android:layout_marginStart="@dimen/vs_10"
+			android:layout_marginLeft="@dimen/vs_10"
+			android:layout_marginEnd="@dimen/vs_10"
+			android:layout_marginRight="@dimen/vs_10"
 			android:layout_toRightOf="@+id/tv_current_program_time"
 			android:ellipsize="marquee"
 			android:marqueeRepeatLimit="marquee_forever"
-			android:paddingRight="@dimen/vs_20"
+			android:paddingRight="@dimen/vs_10"
 			android:singleLine="true"
 			android:text=""
 			android:textColor="@color/color_FFFFFF"
-			android:textSize="@dimen/ts_26" />
+			android:textSize="@dimen/ts_14" />
 		<View
 			android:id="@+id/view_line"
 			android:background="@color/color_FFFFFF"
 			android:layout_width="wrap_content"
-			android:layout_height="1px"
-			android:layout_marginTop="16px"
+			android:layout_height="@dimen/vs_1"
+			android:layout_marginTop="@dimen/vs_6"
 			android:layout_alignLeft="@+id/tv_current_program"
 			android:layout_alignBottom="@+id/tv_current_program_name" />
 		<TextView
-			android:textSize="@dimen/ts_26"
+			android:textSize="@dimen/ts_14"
 			android:textColor="@color/color_FFFFFF"
 			android:id="@+id/tv_next_program"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:layout_marginBottom="@dimen/vs_10"
+			android:layout_marginBottom="@dimen/vs_4"
 			android:text=""
 			android:layout_alignLeft="@+id/tv_current_program"
 			android:layout_alignBottom="@+id/view_line"
 			android:layout_alignParentBottom="true" />
 		<com.github.tvbox.osc.ui.tv.widget.MarqueeTextView
-			android:textSize="@dimen/ts_26"
+			android:textSize="@dimen/ts_14"
 			android:textColor="@color/color_FFFFFF"
 			android:id="@+id/tv_next_program_time"
 			android:fontFamily="monospace"
@@ -570,32 +565,32 @@
 
 		<com.github.tvbox.osc.ui.tv.widget.MarqueeTextView
 			android:id="@+id/tv_next_program_name"
-			android:layout_width="@dimen/vs_440"
+			android:layout_width="@dimen/vs_300"
 			android:layout_height="wrap_content"
 			android:layout_alignTop="@+id/tv_next_program"
 			android:layout_alignEnd="@+id/tv_current_program_name"
 			android:layout_alignRight="@+id/tv_current_program_name"
-			android:layout_marginStart="26px"
-			android:layout_marginLeft="26px"
+			android:layout_marginStart="@dimen/vs_10"
+			android:layout_marginLeft="@dimen/vs_10"
 			android:layout_marginEnd="@dimen/vs_0"
 			android:layout_marginRight="@dimen/vs_0"
 			android:layout_toRightOf="@+id/tv_next_program_time"
 			android:ellipsize="marquee"
 			android:marqueeRepeatLimit="marquee_forever"
-			android:paddingRight="@dimen/vs_20"
+			android:paddingRight="@dimen/vs_10"
 			android:singleLine="true"
 			android:text=""
 			android:textColor="@color/color_FFFFFF"
-			android:textSize="@dimen/ts_26" />
+			android:textSize="@dimen/ts_14" />
 
 		<RelativeLayout
 			android:id="@+id/live_status_info"
-			android:layout_width="@dimen/vs_220"
-			android:layout_height="@dimen/vs_128"
+			android:layout_width="@dimen/vs_120"
+			android:layout_height="@dimen/vs_70"
 			android:layout_alignParentEnd="true"
 			android:layout_alignParentRight="true"
-			android:layout_marginEnd="@dimen/vs_20"
-			android:layout_marginRight="@dimen/vs_20"
+			android:layout_marginEnd="@dimen/vs_10"
+			android:layout_marginRight="@dimen/vs_10"
 			android:layout_alignParentBottom="true">
 
 		<TextView
@@ -605,17 +600,17 @@
 			android:layout_alignParentEnd="true"
 			android:layout_alignParentRight="true"
 			android:layout_alignParentTop="true"
-			android:layout_marginTop="@dimen/vs_10"
+			android:layout_marginTop="@dimen/vs_6"
 			android:text="源 1/1"
 			android:background="@drawable/shape_live_resolution_badge"
 			android:gravity="center"
 			android:includeFontPadding="false"
-			android:paddingLeft="8dp"
-			android:paddingTop="3dp"
-			android:paddingRight="8dp"
-			android:paddingBottom="3dp"
+			android:paddingLeft="@dimen/vs_4"
+			android:paddingTop="@dimen/vs_1"
+			android:paddingRight="@dimen/vs_4"
+			android:paddingBottom="@dimen/vs_1"
 			android:textColor="#CCFFFFFF"
-			android:textSize="@dimen/ts_20" />
+			android:textSize="@dimen/ts_9" />
 		<TextView
 			android:id="@+id/tvResolution"
 			android:layout_width="wrap_content"
@@ -623,16 +618,16 @@
 			android:layout_alignParentEnd="true"
 			android:layout_alignParentRight="true"
 			android:layout_alignParentBottom="true"
-			android:layout_marginBottom="@dimen/vs_10"
+			android:layout_marginBottom="@dimen/vs_6"
 			android:background="@drawable/shape_live_resolution_badge"
 			android:gravity="center"
 			android:includeFontPadding="false"
-			android:paddingLeft="8dp"
-			android:paddingTop="3dp"
-			android:paddingRight="8dp"
-			android:paddingBottom="3dp"
+			android:paddingLeft="@dimen/vs_4"
+			android:paddingTop="@dimen/vs_1"
+			android:paddingRight="@dimen/vs_4"
+			android:paddingBottom="@dimen/vs_1"
 			android:textColor="#CCFFFFFF"
-			android:textSize="@dimen/ts_20"
+			android:textSize="@dimen/ts_9"
 			android:visibility="gone"
 			tools:text="1920 x 1080" />
 		</RelativeLayout>
@@ -644,8 +639,8 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_gravity="end|top"
-		android:layout_margin="20dp"
-		android:paddingTop="8dp"/>
+		android:layout_margin="@dimen/vs_20"
+		android:paddingTop="@dimen/vs_8"/>
 	<!--时间显示-->
 
 	<TextView
@@ -653,8 +648,8 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_gravity="end|top"
-		android:layout_margin="20dp"
-		android:paddingTop="8dp"/>
+		android:layout_margin="@dimen/vs_20"
+		android:paddingTop="@dimen/vs_8"/>
 	<!--右上角加载动画-->
 
 	<LinearLayout
@@ -671,16 +666,16 @@
 		android:id="@+id/ll_right_top_huikan"
 		android:visibility="gone"
 		android:background="@drawable/shape_thumb_bottom_name"
-		android:layout_width="290px"
-		android:layout_height="100px"
-		android:layout_marginTop="40px"
-		android:layout_marginRight="50px"
-		android:minWidth="270px">
+		android:layout_width="@dimen/vs_300"
+		android:layout_height="@dimen/vs_100"
+		android:layout_marginTop="@dimen/vs_40"
+		android:layout_marginRight="@dimen/vs_50"
+		android:minWidth="@dimen/vs_270">
 		<ImageView
 			android:id="@+id/iv_back_bg"
-			android:layout_width="90px"
-			android:layout_height="90px"
-			android:layout_marginLeft="10px"
+			android:layout_width="@dimen/vs_90"
+			android:layout_height="@dimen/vs_90"
+			android:layout_marginLeft="@dimen/vs_10"
 			android:src="@drawable/app_icon"
 			android:layout_alignParentTop="true"
 			android:layout_alignParentLeft="true"
@@ -688,28 +683,28 @@
 
 		<TextView
 			android:id="@+id/tv_right_top_epg_name"
-			android:layout_width="170px"
+			android:layout_width="@dimen/vs_170"
 			android:layout_height="wrap_content"
 			android:layout_alignParentTop="true"
-			android:layout_marginStart="0dp"
-			android:layout_marginLeft="0dp"
-			android:layout_marginRight="10dp"
+			android:layout_marginStart="@dimen/vs_0"
+			android:layout_marginLeft="@dimen/vs_0"
+			android:layout_marginRight="@dimen/vs_10"
 			android:layout_toEndOf="@+id/iv_back_bg"
 			android:layout_toRightOf="@+id/iv_back_bg"
 			android:ellipsize="marquee"
 			android:gravity="center"
 			android:marqueeRepeatLimit="marquee_forever"
-			android:paddingStart="10px"
-			android:paddingTop="15px"
+			android:paddingStart="@dimen/vs_10"
+			android:paddingTop="@dimen/vs_15"
 			android:singleLine="true"
 			android:text="测试频道"
 			android:textColor="#FFFCFFFF"
-			android:textSize="30px"
-			android:paddingLeft="10px" />
+			android:textSize="@dimen/ts_30"
+			android:paddingLeft="@dimen/vs_10" />
 
 		<TextView
 			android:id="@+id/tv_right_top_type"
-			android:layout_width="170px"
+			android:layout_width="@dimen/vs_170"
 			android:layout_height="wrap_content"
 			android:layout_alignStart="@+id/tv_right_top_epg_name"
 			android:layout_alignLeft="@+id/tv_right_top_epg_name"
@@ -719,40 +714,40 @@
 			android:ellipsize="marquee"
 			android:marqueeRepeatLimit="marquee_forever"
 			android:layout_gravity="center"
-			android:layout_marginStart="0dp"
-			android:layout_marginLeft="0dp"
-			android:layout_marginRight="10dp"
-			android:layout_marginEnd="0dp"
+			android:layout_marginStart="@dimen/vs_0"
+			android:layout_marginLeft="@dimen/vs_0"
+			android:layout_marginRight="@dimen/vs_10"
+			android:layout_marginEnd="@dimen/vs_0"
 			android:gravity="center"
-			android:paddingStart="20px"
-			android:paddingBottom="10px"
+			android:paddingStart="@dimen/vs_20"
+			android:paddingBottom="@dimen/vs_10"
 			android:singleLine="true"
 			android:text="回看中"
 			android:textColor="#FFFCFFFF"
-			android:textSize="24px"
-			android:paddingLeft="20px" />
+			android:textSize="@dimen/ts_24"
+			android:paddingLeft="@dimen/vs_20" />
 	</RelativeLayout>
 
 	<RelativeLayout
 		android:layout_gravity="center|right|top"
 		android:id="@+id/ll_right_top_loading"
 		android:background="@drawable/shape_user_search"
-		android:layout_width="@dimen/vs_240"
-		android:layout_height="@dimen/vs_70"
-		android:layout_marginTop="25mm"
-		android:layout_marginRight="25mm"
-		android:minWidth="270px">
+		android:layout_width="@dimen/vs_140"
+		android:layout_height="@dimen/vs_40"
+		android:layout_marginTop="@dimen/vs_10"
+		android:layout_marginRight="@dimen/vs_10"
+		android:minWidth="@dimen/vs_160">
 		<ImageView
 			android:id="@+id/iv_circle_bg"
-			android:layout_width="@dimen/vs_40"
-			android:layout_height="@dimen/vs_40"
+			android:layout_width="@dimen/vs_24"
+			android:layout_height="@dimen/vs_24"
 			android:layout_alignParentRight="true"
 			android:layout_centerVertical="true"
-			android:layout_marginRight="@dimen/vs_10"
+			android:layout_marginRight="@dimen/vs_4"
 			android:src="@drawable/app_icon" />
 		<com.github.tvbox.osc.ui.tv.widget.MarqueeTextView
 			android:id="@+id/tv_right_top_channel_name"
-			android:layout_width="@dimen/vs_150"
+			android:layout_width="@dimen/vs_90"
 			android:layout_height="wrap_content"
 			android:ellipsize="marquee"
 			android:gravity="center"
@@ -760,10 +755,10 @@
 			android:singleLine="true"
 			android:text="测试频道"
 			android:textColor="#FFFCFFFF"
-			android:textSize="@dimen/vs_28"
+			android:textSize="@dimen/ts_10"
 			android:layout_toLeftOf="@id/iv_circle_bg"
 			android:layout_centerVertical="true"
-			android:layout_marginRight="10dp" />
+			android:layout_marginRight="@dimen/vs_4" />
 	</RelativeLayout>
 
 	<RelativeLayout
@@ -771,9 +766,9 @@
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_alignParentBottom="true"
-		android:layout_marginBottom="10mm"
+		android:layout_marginBottom="@dimen/vs_10"
 		android:visibility="visible"
-		android:elevation="10dp"
+		android:elevation="@dimen/vs_10"
 		android:background="@android:color/transparent">
 
 		<!-- 可选：上面区域 ll_play，默认隐藏 -->
@@ -787,8 +782,8 @@
 			android:layout_alignParentTop="true">
 			<ImageView
 				android:id="@+id/iv_play"
-				android:layout_width="120sp"
-				android:layout_height="120sp"
+				android:layout_width="@dimen/vs_120"
+				android:layout_height="@dimen/vs_120"
 				android:visibility="gone"
 				android:background="@drawable/vod_pause" />
 		</LinearLayout>
@@ -803,23 +798,24 @@
 			android:layout_marginLeft="@dimen/vs_70"
 			android:layout_marginRight="@dimen/vs_70"
 			android:layout_marginBottom="@dimen/vs_60"
-			android:paddingLeft="10dp"
-			android:paddingRight="10dp"
-			android:paddingTop="5dp"
-			android:paddingBottom="5dp"
+			android:paddingLeft="@dimen/vs_10"
+			android:paddingRight="@dimen/vs_10"
+			android:paddingTop="@dimen/vs_5"
+			android:paddingBottom="@dimen/vs_5"
 			android:gravity="center"
 			android:background="@drawable/shape_dialog_filter_bg"
 			android:orientation="horizontal">
 
 			<ImageView
 				android:id="@+id/iv_playpause"
-				android:layout_width="30dp"
-				android:layout_height="30dp"
+				android:layout_width="@dimen/vs_50"
+				android:layout_height="@dimen/vs_50"
+				android:padding="@dimen/vs_10"
 				android:background="@drawable/vod_pause" />
 
 			<TextView
 				android:id="@+id/tv_currentpos"
-				android:layout_width="50dp"
+				android:layout_width="@dimen/vs_50"
 				android:layout_height="wrap_content"
 				android:paddingEnd="@dimen/vs_10"
 				android:paddingRight="@dimen/vs_10"
@@ -841,10 +837,10 @@
 				<SeekBar
 					android:id="@+id/pb_progressbar"
 					android:layout_width="match_parent"
-					android:layout_height="30dp"
-					android:padding="2dp"
-					android:maxHeight="3dp"
-					android:minHeight="3dp"
+					android:layout_height="@dimen/vs_30"
+					android:padding="@dimen/vs_2"
+					android:maxHeight="@dimen/vs_3"
+					android:minHeight="@dimen/vs_3"
 					android:max="100"
 					android:progress="30"
 					android:progressDrawable="@drawable/shape_player_control_vod_seek"

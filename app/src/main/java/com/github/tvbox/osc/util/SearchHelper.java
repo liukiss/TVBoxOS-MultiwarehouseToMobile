@@ -2,7 +2,7 @@ package com.github.tvbox.osc.util;
 
 import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.bean.SourceBean;
-import com.github.tvbox.osc.ui.activity.SearchActivity;
+import com.github.tvbox.osc.ui.fragment.SearchFragment;
 import com.orhanobut.hawk.Hawk;
 
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public class SearchHelper {
     public static HashMap<String, String> getSourcesForSearch() {
         HashMap<String, String> mCheckSources;
         try {
-            String api = Hawk.get(HawkConfig.API_URL, "");
+            String api = Hawk.get(HawkConfig.API_URL, "https://tv.ysccn.top/xljk_nopermission.json");
             if(api.isEmpty())return null;
             HashMap<String, HashMap<String, String>> mCheckSourcesForApi = Hawk.get(HawkConfig.SOURCES_FOR_SEARCH, new HashMap<>());
             mCheckSources = mCheckSourcesForApi.get(api);
@@ -57,7 +57,7 @@ public class SearchHelper {
     }
 
     public static void putCheckedSources(HashMap<String, String> mCheckSources,boolean isAll) {
-        String api = Hawk.get(HawkConfig.API_URL, "");
+        String api = Hawk.get(HawkConfig.API_URL, "https://tv.ysccn.top/xljk_nopermission.json");
         if (api.isEmpty()) {
             return;
         }
@@ -70,7 +70,7 @@ public class SearchHelper {
             if (mCheckSourcesForApi == null) mCheckSourcesForApi = new HashMap<>();
             mCheckSourcesForApi.put(api, mCheckSources);
         }
-        SearchActivity.setCheckedSourcesForSearch(mCheckSources);
+        SearchFragment.setCheckedSourcesForSearch(mCheckSources);
         Hawk.put(HawkConfig.SOURCES_FOR_SEARCH, mCheckSourcesForApi);
     }
 

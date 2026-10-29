@@ -1,20 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 手机版适配：字号按 360 竖屏基准重新标定（数值≈dp/sp），
+         原 TV 值是按 1280 宽度设计的，直接沿用会放大约 3.5 倍 -->
+    <dimen name="ts_9">9mm</dimen>
     <dimen name="ts_10">10mm</dimen>
-    <dimen name="ts_14">14mm</dimen>
-    <dimen name="ts_16">16mm</dimen>
-    <dimen name="ts_18">18mm</dimen>
-    <dimen name="ts_19">19mm</dimen>
-    <dimen name="ts_20">20mm</dimen>
-    <dimen name="ts_22">22mm</dimen>
-    <dimen name="ts_24">24mm</dimen>
-    <dimen name="ts_26">26mm</dimen>
-    <dimen name="ts_28">28mm</dimen>
-    <dimen name="ts_30">30mm</dimen>
-    <dimen name="ts_34">34mm</dimen>
-    <dimen name="ts_40">40mm</dimen>
-    <dimen name="ts_50">50mm</dimen>
-    <dimen name="ts_100">100mm</dimen>
+    <dimen name="ts_14">12mm</dimen>
+    <dimen name="ts_16">12mm</dimen>
+    <dimen name="ts_18">13mm</dimen>
+    <dimen name="ts_19">13mm</dimen>
+    <dimen name="ts_20">14mm</dimen>
+    <dimen name="ts_22">15mm</dimen>
+    <dimen name="ts_24">16mm</dimen>
+    <dimen name="ts_26">17mm</dimen>
+    <dimen name="ts_28">18mm</dimen>
+    <dimen name="ts_30">16mm</dimen>
+    <dimen name="ts_32">17mm</dimen>
+    <dimen name="ts_34">19mm</dimen>
+    <dimen name="ts_40">18mm</dimen>
+    <dimen name="ts_50">20mm</dimen>
+    <dimen name="ts_60">24mm</dimen>
+    <dimen name="ts_100">40mm</dimen>
 
     <dimen name="focus_border_1">1mm</dimen>
     <dimen name="focus_border_2">2mm</dimen>
@@ -24,6 +29,8 @@
     <dimen name="preview_player_radius">14mm</dimen>
 
     <dimen name="vs_4_">-4mm</dimen>
+    <dimen name="vs_5_">-5mm</dimen>
+    <dimen name="vs_14_">-14mm</dimen>
     <dimen name="vs_20_">-20mm</dimen>
     <dimen name="vs_25_">-25mm</dimen>
     <dimen name="vs_60_">-60mm</dimen>
@@ -41,22 +48,30 @@
     <dimen name="vs_12">12mm</dimen>
     <dimen name="vs_14">14mm</dimen>
     <dimen name="vs_15">15mm</dimen>
+    <dimen name="vs_16">16mm</dimen>
     <dimen name="vs_20">20mm</dimen>
+    <dimen name="vs_22">22mm</dimen>
     <dimen name="vs_24">24mm</dimen>
+    <dimen name="vs_25">25mm</dimen>
     <dimen name="vs_28">28mm</dimen>
     <dimen name="vs_30">30mm</dimen>
+    <dimen name="vs_32">32mm</dimen>
     <dimen name="vs_35">35mm</dimen>
+    <dimen name="vs_36">36mm</dimen>
     <dimen name="vs_40">40mm</dimen>
     <dimen name="vs_45">45mm</dimen>
+    <dimen name="vs_46">46mm</dimen>
     <dimen name="vs_48">48mm</dimen>
     <dimen name="vs_50">50mm</dimen>
     <dimen name="vs_60">60mm</dimen>
+    <dimen name="vs_65">65mm</dimen>
     <dimen name="vs_70">70mm</dimen>
     <dimen name="vs_76">76mm</dimen>
     <dimen name="vs_80">80mm</dimen>
     <dimen name="vs_90">90mm</dimen>
     <dimen name="vs_100">100mm</dimen>
     <dimen name="vs_108">108mm</dimen>
+    <dimen name="vs_110">110mm</dimen>
     <dimen name="vs_120">120mm</dimen>
     <dimen name="vs_128">128mm</dimen>
     <dimen name="vs_130">130mm</dimen>

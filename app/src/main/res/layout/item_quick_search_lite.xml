@@ -8,11 +8,11 @@
     <TextView
         android:id="@+id/tvName"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/vs_30"
         android:ellipsize="middle"
         android:gravity="center_vertical"
-        android:padding="@dimen/vs_10"
+        android:padding="@dimen/vs_8"
         android:singleLine="true"
         android:textColor="@color/dialog_text_primary"
-        android:textSize="@dimen/ts_20" />
+        android:textSize="@dimen/ts_14" />
 </FrameLayout>

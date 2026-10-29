@@ -9,7 +9,7 @@ import android.text.TextUtils;
 import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.receiver.PushReceiver;
 import com.github.tvbox.osc.receiver.SearchReceiver;
-import com.github.tvbox.osc.ui.activity.HomeActivity;
+import com.github.tvbox.osc.ui.activity.MainActivity;
 import com.github.tvbox.osc.util.HawkConfig;
 import com.github.tvbox.osc.util.HistoryHelper;
 import com.github.tvbox.osc.util.MoreSourceHelper;
@@ -97,7 +97,7 @@ public class ControlManager {
                         public void onDone(boolean success, String msg) {
                             if (!success) return;
                             try {
-                                Intent intent = new Intent(mContext, HomeActivity.class);
+                                Intent intent = new Intent(mContext, MainActivity.class);
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 mContext.startActivity(intent);
                             } catch (Throwable th) {

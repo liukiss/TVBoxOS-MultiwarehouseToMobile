@@ -3,6 +3,7 @@ package com.github.tvbox.osc.ui.activity;
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Outline;
@@ -94,9 +95,29 @@ public class DetailActivity extends BaseActivity {
     private static final String DETAIL_FALLBACK_SEARCH_TAG = "detail_fallback_search";
     public static final String EXTRA_DETAIL_FALLBACK_CANDIDATES = "detailFallbackCandidates";
     private static final int DETAIL_FALLBACK_MAX_SEARCH = 20;
+
+    // 手机版适配：详情页竖屏浏览用 360 基准，全屏播放（横屏）用 640 基准。
+    // 注意：不能在这里读取 getResources().getConfiguration()——BaseActivity.getResources()
+    // 会回调 getSizeInDp()，直接读配置会造成无限递归 StackOverflowError。
+    // 改用字段，在全屏切换与方向变化时更新。
+    private boolean landscapeDesign = false;
+
+    @Override
+    protected boolean isLandscapePage() {
+        return landscapeDesign;
+    }
+
+    /**
+     * 手机版：只有全屏播放时才隐藏系统栏，竖屏浏览详情时保留顶部状态栏。
+     */
+    @Override
+    public boolean isImmersionPage() {
+        return landscapeDesign;
+    }
     private static final long DETAIL_FALLBACK_SEARCH_TIMEOUT_MS = 8000L;
     private static final long DETAIL_FALLBACK_DETAIL_TIMEOUT_MS = 6000L;
     private LinearLayout llLayout;
+    private View llDetailContent;
     private FragmentContainerView llPlayerFragmentContainer;
     private View llPlayerFragmentContainerBlock;
     private View llPlayerPlace;
@@ -178,6 +199,7 @@ public class DetailActivity extends BaseActivity {
 
     private void initView() {
         llLayout = findViewById(R.id.llLayout);
+        llDetailContent = findViewById(R.id.llDetailContent);
         llPlayerPlace = findViewById(R.id.previewPlayerPlace);
         llPlayerFragmentContainer = findViewById(R.id.previewPlayer);
         llPlayerFragmentContainerBlock = findViewById(R.id.previewPlayerBlock);
@@ -205,7 +227,7 @@ public class DetailActivity extends BaseActivity {
         mEmptyPlayList = findViewById(R.id.mEmptyPlaylist);
         mGridView = findViewById(R.id.mGridView);
         mGridView.setHasFixedSize(false);
-        this.mGridViewLayoutMgr = new V7GridLayoutManager(this.mContext, 6);
+        this.mGridViewLayoutMgr = new V7GridLayoutManager(this.mContext, 4); // 手机版：竖屏剧集 4 列
         mGridView.setLayoutManager(this.mGridViewLayoutMgr);
 //        mGridView.setLayoutManager(new V7LinearLayoutManager(this.mContext, 0, false));
 
@@ -532,9 +554,8 @@ public class DetailActivity extends BaseActivity {
 
                     seriesAdapter.getData().get(vodInfo.playIndex).selected = true;
                     seriesAdapter.notifyItemChanged(vodInfo.playIndex);
-                    //选集全屏 想选集不全屏的注释下面一行
-                    if (showPreview && !fullWindows && previewVodInfo != null && TextUtils.equals(vodInfo.playFlag, previewVodInfo.playFlag) && (playFragment.getPlayer().isPlaying() || isCurrentPlaying)) enterFullPreview();
-                    if (!showPreview || reload) {
+                    //手机版：点击集数只切换选中集，不再自动进入全屏播放
+                    if (showPreview && reload) {
                         jumpToPlay();
                         firstReverse=false;
                     }
@@ -695,7 +716,7 @@ public class DetailActivity extends BaseActivity {
         }
 
         Paint pFont = new Paint();
-//        pFont.setTypeface(Typeface.DEFAULT );
+        pFont.setTextSize(getResources().getDimension(R.dimen.ts_16));
         Rect rect = new Rect();
 
         List<VodInfo.VodSeries> list = vodInfo.seriesMap.get(vodInfo.playFlag);
@@ -708,10 +729,13 @@ public class DetailActivity extends BaseActivity {
                 w = rect.width();
             }
         }
-        w += 32;
-        int screenWidth = getWindowManager().getDefaultDisplay().getWidth()/3;
-        int offset = screenWidth/w;
-        if(offset <=2) offset =2;
+        //手机版：按最长的集数名称计算列数，保证按钮文字完整显示
+        int itemPadding = getResources().getDimensionPixelSize(R.dimen.vs_6) * 2;
+        int itemMargin = getResources().getDimensionPixelSize(R.dimen.vs_2) * 2;
+        int itemSpacing = getResources().getDimensionPixelSize(R.dimen.vs_10);
+        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+        int offset = screenWidth / (w + itemPadding + itemMargin + itemSpacing);
+        if(offset <=3) offset =3;
         if(offset > 6) offset =6;
         mGridViewLayoutMgr.setSpanCount(offset);
         seriesAdapter.setNewData(vodInfo.seriesMap.get(vodInfo.playFlag));
@@ -799,9 +823,16 @@ public class DetailActivity extends BaseActivity {
     private void setTextShow(TextView view, String tag, String info) {
         if (info == null || info.trim().isEmpty()) {
             view.setVisibility(View.GONE);
+            // 手机版：简介外层是限高的滑动容器，需跟随内容一起隐藏
+            if (view.getId() == R.id.tvDes) {
+                findViewById(R.id.scDesc).setVisibility(View.GONE);
+            }
             return;
         }
         view.setVisibility(View.VISIBLE);
+        if (view.getId() == R.id.tvDes) {
+            findViewById(R.id.scDesc).setVisibility(View.VISIBLE);
+        }
         view.setText(Html.fromHtml(getHtml(tag, info)));
     }
 
@@ -816,14 +847,11 @@ public class DetailActivity extends BaseActivity {
     }
 
     private void applyPreviewRoundCorners() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            return;
-        }
-        final float radius = getResources().getDimension(R.dimen.preview_player_radius);
+        // 手机版：播放区域改为矩形，不再使用圆角裁切
         ViewOutlineProvider provider = new ViewOutlineProvider() {
             @Override
             public void getOutline(View view, Outline outline) {
-                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
+                outline.setRect(0, 0, view.getWidth(), view.getHeight());
             }
         };
         llPlayerFragmentContainer.setClipToOutline(true);
@@ -840,9 +868,6 @@ public class DetailActivity extends BaseActivity {
     }
 
     private void setPreviewRoundClip(boolean enable) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            return;
-        }
         llPlayerFragmentContainer.setClipToOutline(enable);
         llPlayerFragmentContainerBlock.setClipToOutline(enable);
         llPlayerFragmentContainer.setBackgroundResource(enable ? R.drawable.preview_player_round : android.R.color.black);
@@ -911,7 +936,7 @@ public class DetailActivity extends BaseActivity {
                     setTextShow(tvDirector, "导演：", removeHtmlTag(mVideo.director));
                     setTextShow(tvDes, "内容简介：", removeHtmlTag(mVideo.des));
                     if (!TextUtils.isEmpty(mVideo.pic)) {
-                        com.github.tvbox.osc.util.ImgUtil.load(DefaultConfig.checkReplaceProxy(mVideo.pic), ivThumb, AutoSizeUtils.mm2px(mContext, 10), AutoSizeUtils.mm2px(mContext, 300), AutoSizeUtils.mm2px(mContext, 400), mVideo.name);
+                        com.github.tvbox.osc.util.ImgUtil.load(DefaultConfig.checkReplaceProxy(mVideo.pic), ivThumb, AutoSizeUtils.mm2px(mContext, 10), AutoSizeUtils.mm2px(mContext, 360), AutoSizeUtils.mm2px(mContext, 200), mVideo.name);
                     } else {
                         ivThumb.setImageDrawable(com.github.tvbox.osc.util.ImgUtil.createTextDrawable(mVideo.name));
                     }
@@ -1986,6 +2011,8 @@ public class DetailActivity extends BaseActivity {
     // preview
     VodInfo previewVodInfo = null;
     boolean fullWindows = false;
+    /** 本次全屏是否为“竖屏视频直达竖屏”，用于退出时补做列表刷新 */
+    private boolean portraitFullWindows = false;
     private int previewOrientation;
     private boolean previewOrientationChanged;
     ViewGroup.LayoutParams windowsPreview = null;
@@ -2000,7 +2027,10 @@ public class DetailActivity extends BaseActivity {
     }
 
     void exitFullPreview() {
-        boolean needRefreshSeries = previewOrientationChanged;
+        // 竖屏视频直达全屏时不会触发 onConfigurationChanged，这里补上同样的退出刷新，
+        // 保证全屏期间切换过的剧集在返回详情页后能正确高亮
+        boolean needRefreshSeries = previewOrientationChanged || portraitFullWindows;
+        portraitFullWindows = false;
         setFullPreview(false);
         previewOrientationChanged = false;
         if (needRefreshSeries) {
@@ -2063,6 +2093,18 @@ public class DetailActivity extends BaseActivity {
             previewOrientationChanged = false;
         }
         fullWindows = full;
+        // 手机版适配：横屏视频进入全屏旋转为横屏；竖屏视频直接在竖屏展开，
+        // 避免“先转横屏、判定后再转回竖屏”的两次旋转动画
+        boolean portraitFull = full && playFragment != null && playFragment.isCurrentVideoPortrait();
+        portraitFullWindows = portraitFull;
+        landscapeDesign = full && !portraitFull;
+        // 全屏播放隐藏状态栏，退出后恢复
+        hideSysBar();
+        setRequestedOrientation(fullWindows
+                ? (portraitFull
+                        ? ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                        : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
+                : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         if (playFragment != null) {
             playFragment.setAutoSwitchLineEnabled(!fullWindows);
             playFragment.setPreviewMode(!fullWindows);
@@ -2071,6 +2113,8 @@ public class DetailActivity extends BaseActivity {
         llPlayerFragmentContainer.setLayoutParams(fullWindows ? windowsFull : windowsPreview);
         setPreviewRoundClip(!fullWindows);
         llPlayerFragmentContainerBlock.setVisibility(!fullWindows && showPreview ? View.VISIBLE : View.GONE);
+        // 手机版适配：全屏播放时隐藏播放区之下的全部内容
+        llDetailContent.setVisibility(fullWindows ? View.GONE : View.VISIBLE);
         mGridView.setVisibility(fullWindows ? View.GONE : View.VISIBLE);
         mGridViewFlag.setVisibility(fullWindows ? View.GONE : View.VISIBLE);
         if (fullWindows) {
@@ -2095,6 +2139,33 @@ public class DetailActivity extends BaseActivity {
             previewOrientation = newConfig.orientation;
             previewOrientationChanged = true;
         }
+        // 手机版适配：方向变化后按新基准重算 AutoSize 密度并刷新布局
+        landscapeDesign = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
+        me.jessyan.autosize.AutoSizeCompat.autoConvertDensityOfCustomAdapt(super.getResources(), this);
+        getWindow().getDecorView().requestLayout();
+        // 手机版：条目里的 mm 尺寸在 inflate 时就换算成像素，requestLayout 不会重新换算。
+        // 返回竖屏后，横屏（640 基准）期间创建过的资源标签 / 集数条目会残留偏大的像素尺寸，
+        // 表现为标签或按钮随机变大，因此丢弃复用池并按当前基准重建这些列表。
+        if (!landscapeDesign) {
+            getWindow().getDecorView().post(this::resetSeriesItemViews);
+        }
+    }
+
+    private void resetSeriesItemViews() {
+        resetItemDensity(mGridViewFlag, seriesFlagAdapter);
+        resetItemDensity(mSeriesGroupView, seriesGroupAdapter);
+        resetItemDensity(mGridViewQuality, qualityAdapter);
+        resetItemDensity(mGridView, seriesAdapter);
+    }
+
+    private void resetItemDensity(TvRecyclerView listView, BaseQuickAdapter adapter) {
+        if (listView == null || adapter == null) return;
+        int first = listView.getFirstVisiblePosition();
+        // 先解绑（旧条目会被回收进复用池），再清空复用池，最后重新绑定，强制按当前密度重新 inflate
+        listView.setAdapter(null);
+        listView.getRecycledViewPool().clear();
+        listView.setAdapter(adapter);
+        if (first > 0) listView.scrollToPosition(first);
     }
 
     void ensurePlayFragment() {
