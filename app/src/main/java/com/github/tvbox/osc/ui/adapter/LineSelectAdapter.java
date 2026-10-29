@@ -1,9 +1,13 @@
 package com.github.tvbox.osc.ui.adapter;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -98,6 +102,26 @@ public class LineSelectAdapter extends RecyclerView.Adapter<LineSelectAdapter.Se
                 }
             }
         });
+        holder.rowMain.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                int pos = holder.getAdapterPosition();
+                if (pos >= 0 && pos < data.size()) {
+                    copySourceUrl(v, data.get(pos).getSourceUrl());
+                }
+                return true;
+            }
+        });
+    }
+
+    /** 长按复制源地址并提示 */
+    private static void copySourceUrl(View v, String url) {
+        if (url == null || url.isEmpty()) return;
+        ClipboardManager cm = (ClipboardManager) v.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+        if (cm != null) {
+            cm.setPrimaryClip(ClipData.newPlainText("sourceUrl", url));
+        }
+        Toast.makeText(v.getContext(), "成功复制源地址", Toast.LENGTH_SHORT).show();
     }
 
     @Override

@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- v2.1.4：行容器不再聚焦，行主体(rowMain)与"删除"按钮并排、各自独立可聚焦（TV 遥控器 D-pad 上下切行、左右在行主体⇄删除间移动） -->
+<!-- v2.1.4：行容器不再聚焦，行主体(rowMain)与"删除"按钮并排、各自独立可聚焦（TV 遥控器 D-pad 上下切行、左右在行主体⇄删除间移动）
+     手机版：名称与地址单行紧凑展示，地址超宽自动截断；长按行主体复制源地址 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/vs_2"
     android:focusable="false"
     android:gravity="center_vertical"
     android:orientation="horizontal">
@@ -17,47 +18,49 @@
         android:focusable="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingLeft="@dimen/vs_20"
-        android:paddingTop="@dimen/vs_10"
-        android:paddingRight="@dimen/vs_20"
-        android:paddingBottom="@dimen/vs_10">
+        android:paddingLeft="@dimen/vs_10"
+        android:paddingTop="@dimen/vs_2"
+        android:paddingRight="@dimen/vs_10"
+        android:paddingBottom="@dimen/vs_2">
 
         <TextView
             android:id="@+id/tvName"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:ellipsize="end"
+            android:maxWidth="@dimen/vs_120"
             android:singleLine="true"
             android:textColor="@color/dialog_text_primary"
-            android:textSize="@dimen/ts_24" />
+            android:textSize="@dimen/ts_16" />
 
         <TextView
             android:id="@+id/tvUrl"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:ellipsize="middle"
-            android:maxWidth="@dimen/vs_140"
+            android:layout_marginStart="@dimen/vs_4"
+            android:layout_marginLeft="@dimen/vs_4"
+            android:layout_weight="1"
+            android:ellipsize="end"
             android:singleLine="true"
             android:textColor="@color/dialog_text_hint"
-            android:textSize="@dimen/ts_22" />
+            android:textSize="@dimen/ts_14" />
     </LinearLayout>
 
     <TextView
         android:id="@+id/tvDelete"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/vs_10"
-        android:layout_marginLeft="@dimen/vs_10"
+        android:layout_marginStart="@dimen/vs_4"
+        android:layout_marginLeft="@dimen/vs_4"
         android:background="@drawable/button_danmu_setting"
         android:focusable="true"
         android:gravity="center"
-        android:paddingLeft="@dimen/vs_10"
-        android:paddingTop="@dimen/vs_8"
-        android:paddingRight="@dimen/vs_10"
-        android:paddingBottom="@dimen/vs_8"
+        android:paddingLeft="@dimen/vs_8"
+        android:paddingTop="@dimen/vs_2"
+        android:paddingRight="@dimen/vs_8"
+        android:paddingBottom="@dimen/vs_2"
         android:text="删除"
         android:textColor="@color/dialog_text_primary"
-        android:textSize="@dimen/ts_22"
+        android:textSize="@dimen/ts_16"
         android:visibility="gone" />
 </LinearLayout>

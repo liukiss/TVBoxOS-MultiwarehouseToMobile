@@ -55,6 +55,7 @@ public class LineSelectDialog extends BaseDialog {
 
     private RecyclerView mListView;
     private LineSelectAdapter mAdapter;
+    private View loadingView;
     private final List<MoreSourceBean> lineList = new ArrayList<>();
     private final Handler mHandler = new Handler(Looper.getMainLooper());
 
@@ -81,8 +82,7 @@ public class LineSelectDialog extends BaseDialog {
     }
 
     private void initView() {
-        TextView tvTitle = findViewById(R.id.title);
-        tvTitle.setText("选择线路\n当前使用接口数据");
+        loadingView = findViewById(R.id.loading);
         mListView = findViewById(R.id.list);
         mAdapter = new LineSelectAdapter(new LineSelectAdapter.SelectDialogInterface() {
             @Override
@@ -159,6 +159,7 @@ public class LineSelectDialog extends BaseDialog {
 
         // 有选中仓库 → 请求该仓库配置解析 urls
         final String url = selectedStore.getSourceUrl();
+        showLoading();
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -189,6 +190,7 @@ public class LineSelectDialog extends BaseDialog {
                     @Override
                     public void run() {
                         if (!TextUtils.isEmpty(err)) {
+                            hideLoading();
                             Toast.makeText(mContext, "线路加载失败:" + err, Toast.LENGTH_SHORT).show();
                             mAdapter.setData(new ArrayList<>(lineList));
                 
@@ -203,6 +205,7 @@ public class LineSelectDialog extends BaseDialog {
 
     /** 解析响应：有 urls 按线路列表展示；无 urls 视为单线路配置（该地址本身就是一条线路），不再报"接口无效" */
     private void parseLines(String result, String requestUrl) {
+        hideLoading();
         try {
             JSONObject json = new JSONObject(result);
             if (!json.has("urls")) {
@@ -254,6 +257,14 @@ public class LineSelectDialog extends BaseDialog {
             mAdapter.setData(new ArrayList<>(lineList));
 
         }
+    }
+
+    private void showLoading() {
+        if (loadingView != null) loadingView.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoading() {
+        if (loadingView != null) loadingView.setVisibility(View.GONE);
     }
 
 }

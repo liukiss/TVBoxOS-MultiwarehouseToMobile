@@ -44,6 +44,7 @@ public class LiveSourceDialog extends BaseDialog {
     private MoreSourceAdapter mAdapter;
     private EditText inputLiveName;
     private EditText inputLiveUrl;
+    private View loadingView;
 
     private final List<MoreSourceBean> liveList = new ArrayList<>();
 
@@ -88,6 +89,7 @@ public class LiveSourceDialog extends BaseDialog {
     }
 
     private void initView() {
+        loadingView = findViewById(R.id.loading);
         mListView = findViewById(R.id.list);
         inputLiveName = findViewById(R.id.input_live_name);
         inputLiveUrl = findViewById(R.id.input_live_url);
@@ -176,9 +178,27 @@ public class LiveSourceDialog extends BaseDialog {
     }
 
     private void loadData() {
+        // 刷新动画与全应用统一：短暂展示 LoadingRingView，避免列表"无反馈"刷新
+        showLoading();
         liveList.clear();
         liveList.addAll(MoreSourceHelper.getLiveSourceList());
         mAdapter.setData(new ArrayList<>(liveList));
+        if (loadingView != null) {
+            loadingView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    hideLoading();
+                }
+            }, 200);
+        }
+    }
+
+    private void showLoading() {
+        if (loadingView != null) loadingView.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoading() {
+        if (loadingView != null) loadingView.setVisibility(View.GONE);
     }
 
     /* ---------- 添加直播源 ---------- */

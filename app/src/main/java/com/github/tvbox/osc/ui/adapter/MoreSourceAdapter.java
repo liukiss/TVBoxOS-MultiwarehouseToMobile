@@ -1,9 +1,13 @@
 package com.github.tvbox.osc.ui.adapter;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
@@ -88,6 +92,24 @@ public class MoreSourceAdapter extends ListAdapter<MoreSourceBean, MoreSourceAda
                 if (dialogInterface != null) dialogInterface.del(getItem(holder.getBindingAdapterPosition()), new ArrayList<>(getCurrentList()));
             }
         });
+        holder.rowMain.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                MoreSourceBean bean = getItem(holder.getBindingAdapterPosition());
+                copySourceUrl(v, bean == null ? null : bean.getSourceUrl());
+                return true;
+            }
+        });
+    }
+
+    /** 长按复制源地址并提示 */
+    private static void copySourceUrl(View v, String url) {
+        if (url == null || url.isEmpty()) return;
+        ClipboardManager cm = (ClipboardManager) v.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+        if (cm != null) {
+            cm.setPrimaryClip(ClipData.newPlainText("sourceUrl", url));
+        }
+        Toast.makeText(v.getContext(), "成功复制源地址", Toast.LENGTH_SHORT).show();
     }
 
     public void setData(List<MoreSourceBean> newData) {

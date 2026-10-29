@@ -8,7 +8,6 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -65,7 +64,7 @@ public class MultiSourceDialog extends BaseDialog {
     private EditText inputSourceUrl;
     private View inputSubmit;
     private View delAll;
-    private ProgressBar playLoading;
+    private View playLoading;
 
     private final List<MoreSourceBean> storeHouse = new ArrayList<>();
     private final List<String> visitedUrls = new ArrayList<>(); // 链式防循环
