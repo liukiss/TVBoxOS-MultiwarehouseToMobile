@@ -89,6 +89,8 @@ public class ApiConfig {
     private String currentLivePyKey = "";
     private String currentPlaySourceKey = "";
     private String loadedLiveConfigUrl = "";
+    /** 已加载直播配置对应的直播线路分组号，用于判断"同地址切换分组"是否需要重新加载 */
+    private int loadedLiveConfigGroupIndex = -1;
     public String wallpaper = "";
     private String danmaku = "";
 
@@ -279,6 +281,9 @@ public class ApiConfig {
                 parseLiveConfigContent(liveApiUrl, live_cache);
                 if (hasLiveConfigResult()) {
                     loadedLiveConfigUrl = liveApiUrl;
+                    loadedLiveConfigGroupIndex = liveGroupIndexForUrl(liveApiUrl);
+                    // 配置加载成功即记录为"最近可用线路"：全屏播放器等路径加载成功后也能作为回退目标
+                    MoreSourceHelper.rememberGoodLiveLine();
                     callback.success();
                     return;
                 }
@@ -296,6 +301,8 @@ public class ApiConfig {
                         return;
                     }
                     loadedLiveConfigUrl = liveApiUrl;
+                    loadedLiveConfigGroupIndex = liveGroupIndexForUrl(liveApiUrl);
+                    MoreSourceHelper.rememberGoodLiveLine();
                     FileUtils.saveCache(live_cache, json);
                     callback.success();
                 } catch (Throwable th) {
@@ -311,6 +318,8 @@ public class ApiConfig {
                         parseLiveConfigContent(liveApiUrl, live_cache);
                         if (hasLiveConfigResult()) {
                             loadedLiveConfigUrl = liveApiUrl;
+                            loadedLiveConfigGroupIndex = liveGroupIndexForUrl(liveApiUrl);
+                            MoreSourceHelper.rememberGoodLiveLine();
                             callback.success();
                             return;
                         }
@@ -330,7 +339,17 @@ public class ApiConfig {
     public boolean shouldReloadLiveConfig() {
         String apiUrl = Hawk.get(HawkConfig.LIVE_API_URL, "");
         if (apiUrl.isEmpty()) apiUrl = Hawk.get(HawkConfig.API_URL, "");
-        return liveChannelGroupList == null || liveChannelGroupList.isEmpty() || !apiUrl.equals(loadedLiveConfigUrl);
+        if (liveChannelGroupList == null || liveChannelGroupList.isEmpty() || !apiUrl.equals(loadedLiveConfigUrl)) {
+            return true;
+        }
+        // 同一配置地址内切换了直播线路分组，也需要重新加载
+        return getLiveGroupIndex() != loadedLiveConfigGroupIndex;
+    }
+
+    /** 读取指定地址对应的直播线路分组号（不依赖当前 LIVE_API_URL） */
+    private static int liveGroupIndexForUrl(String url) {
+        String key = (url == null || url.isEmpty()) ? HawkConfig.LIVE_GROUP_INDEX : HawkConfig.LIVE_GROUP_INDEX + "_" + url;
+        return Hawk.get(key, 0);
     }
 
     public static String getLiveGroupIndexKey() {

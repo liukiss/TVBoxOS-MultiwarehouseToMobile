@@ -3088,6 +3088,8 @@ public class LivePlayActivity extends BaseActivity {
     private void applyLiveChannelGroups(List<LiveChannelGroup> groups) {
         liveChannelGroupList.clear();
         liveChannelGroupList.addAll(groups);
+        // 全屏播放器加载到可用频道后也记录"最近可用线路"，供直播控制页在加载失败时回退
+        MoreSourceHelper.rememberGoodLiveLine();
         showSuccess();
         initLiveState();
     }

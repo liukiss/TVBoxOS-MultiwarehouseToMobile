@@ -379,10 +379,9 @@ public class LiveFragment extends BaseLazyFragment {
      */
     private void onLiveListLoadFailed() {
         if (isActivityUnavailable()) return;
-        boolean restored = MoreSourceHelper.restoreLastGoodLiveLine();
-        if (restored) {
+        if (recoverToAvailableLiveLine()) {
             showLiveListFailedToast("直播列表加载失败，该直播源不可用，切回原直播！");
-            loadLiveChannels(true);
+            loadLiveChannels();
             return;
         }
         // 没有可回退的线路：至少停止后台播放，避免"有声音但无法操作"
@@ -403,6 +402,26 @@ public class LiveFragment extends BaseLazyFragment {
         }, 3000);
     }
 
+    /**
+     * 失败回退：
+     * 1) 先回到最近一次加载成功的直播线路；
+     * 2) 若不可用（例如失败线路本身就是它），再退到接口配置地址的第一条直播线路；
+     * 仍不可回退时返回 false，由调用方显示空状态。
+     */
+    private boolean recoverToAvailableLiveLine() {
+        if (MoreSourceHelper.restoreLastGoodLiveLine()) return true;
+        String apiUrl = Hawk.get(HawkConfig.API_URL, "");
+        if (apiUrl == null || apiUrl.isEmpty()) return false;
+        String liveUrl = Hawk.get(HawkConfig.LIVE_API_URL, "");
+        boolean isUserSource = liveUrl != null && !liveUrl.isEmpty() && !liveUrl.equals(apiUrl);
+        if (isUserSource || ApiConfig.getLiveGroupIndex() != 0) {
+            Hawk.put(HawkConfig.LIVE_API_URL, apiUrl);
+            ApiConfig.setLiveGroupIndex(0);
+            return true;
+        }
+        return false;
+    }
+
     private void openFullscreenLive() {
         if (mVideoView != null) {
             mVideoView.pause();
@@ -417,15 +436,8 @@ public class LiveFragment extends BaseLazyFragment {
     }
 
     private void loadLiveChannels() {
-        loadLiveChannels(false);
-    }
-
-    /**
-     * @param forceReload 直播列表加载失败回退时强制重新解析（同一配置地址仅切换了直播线路分组时也能生效）
-     */
-    private void loadLiveChannels(boolean forceReload) {
         List<LiveChannelGroup> cachedGroups = ApiConfig.get().getChannelGroupList();
-        if (forceReload || ApiConfig.get().shouldReloadLiveConfig() || cachedGroups == null || cachedGroups.isEmpty()) {
+        if (ApiConfig.get().shouldReloadLiveConfig() || cachedGroups == null || cachedGroups.isEmpty()) {
             if (liveConfigLoading) return;
             liveConfigLoading = true;
             showLoading();
@@ -452,10 +464,10 @@ public class LiveFragment extends BaseLazyFragment {
                             if (isActivityUnavailable()) return;
                             // 切换的直播线路加载失败 → 自动回退到上一次加载成功的线路
                             String failedName = MoreSourceHelper.getCurrentLiveLineName();
-                            if (MoreSourceHelper.restoreLastGoodLiveLine()) {
+                            if (recoverToAvailableLiveLine()) {
                                 Toast.makeText(mActivity, (failedName.isEmpty() ? "直播线路" : failedName)
                                         + "加载失败！已切回原直播线路", Toast.LENGTH_SHORT).show();
-                                loadLiveChannels(true);
+                                loadLiveChannels();
                                 return;
                             }
                             showEmpty();
