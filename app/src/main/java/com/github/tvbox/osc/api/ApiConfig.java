@@ -275,7 +275,6 @@ public class ApiConfig {
         String liveApiConfigUrl = configUrl(liveApiUrl);
         final String liveConfigKey = TempKey;
         File live_cache = new File(App.getInstance().getFilesDir().getAbsolutePath() + "/" + MD5.encode(liveApiUrl));
-        LOG.i("echo-load live config "+liveApiUrl);
         if (useCache && live_cache.exists()) {
             try {
                 parseLiveConfigContent(liveApiUrl, live_cache);
@@ -682,7 +681,7 @@ public class ApiConfig {
         Hawk.put(HawkConfig.API_URL, firstApi);
         // v2.1.1：点播线路集合切换 → 直播地址无条件跟随（多源切换/直播加载均以该地址为准）
         Hawk.put(HawkConfig.LIVE_API_URL, firstApi);
-        HistoryHelper.setLiveApiHistory(firstApi);
+        MoreSourceHelper.syncConfigSwitchSnapshot();
         return true;
     }
 

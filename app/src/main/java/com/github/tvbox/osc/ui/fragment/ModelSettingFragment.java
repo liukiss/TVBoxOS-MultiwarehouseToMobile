@@ -433,12 +433,12 @@ public class ModelSettingFragment extends BaseLazyFragment {
                         Hawk.put(HawkConfig.LIVE_API_URL, newApi);
                         ApiConfig.setLiveGroupIndex(0); // 默认使用新接口配置文件的第一条直播线路
                         MoreSourceHelper.clearLastGoodLiveLine(); // 接口配置已更换，清除旧的直播线路回退记录
-                        HistoryHelper.setLiveApiHistory(newApi);
                         // v2.1.7：同步更新当前线路 Bean → "配置地址"按钮显示名称+URL（与其他入口一致）
                         MoreSourceBean lineBean = new MoreSourceBean();
                         lineBean.setSourceUrl(newApi);
                         lineBean.setSourceName(HistoryHelper.getApiLineName(value));
                         Hawk.put(MoreSourceHelper.KEY_API_URL_BEAN, lineBean);
+                        MoreSourceHelper.syncConfigSwitchSnapshot(); // 重建"配置切换"快照
                         tvApi.setText(apiButtonText());
                         refreshApiLineText();
                         dialog.dismiss();

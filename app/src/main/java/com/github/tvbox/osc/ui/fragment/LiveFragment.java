@@ -36,7 +36,6 @@ import com.github.tvbox.osc.ui.dialog.SelectDialog;
 import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.EpgUtil;
 import com.github.tvbox.osc.util.HawkConfig;
-import com.github.tvbox.osc.util.HistoryHelper;
 import com.github.tvbox.osc.util.ImgUtil;
 import com.github.tvbox.osc.util.MoreSourceHelper;
 import com.github.tvbox.osc.util.OkGoHelper;
@@ -379,7 +378,7 @@ public class LiveFragment extends BaseLazyFragment {
      */
     private void onLiveListLoadFailed() {
         if (isActivityUnavailable()) return;
-        if (recoverToAvailableLiveLine()) {
+        if (MoreSourceHelper.recoverToAvailableLiveLine()) {
             showLiveListFailedToast("直播列表加载失败，该配置下无可用源，切回原直播！");
             loadLiveChannels();
             return;
@@ -400,26 +399,6 @@ public class LiveFragment extends BaseLazyFragment {
                 toast.cancel();
             }
         }, 3000);
-    }
-
-    /**
-     * 失败回退：
-     * 1) 先回到最近一次加载成功的直播线路；
-     * 2) 若不可用（例如失败线路本身就是它），再退到接口配置地址的第一条直播线路；
-     * 仍不可回退时返回 false，由调用方显示空状态。
-     */
-    private boolean recoverToAvailableLiveLine() {
-        if (MoreSourceHelper.restoreLastGoodLiveLine()) return true;
-        String apiUrl = Hawk.get(HawkConfig.API_URL, "");
-        if (apiUrl == null || apiUrl.isEmpty()) return false;
-        String liveUrl = Hawk.get(HawkConfig.LIVE_API_URL, "");
-        boolean isUserSource = liveUrl != null && !liveUrl.isEmpty() && !liveUrl.equals(apiUrl);
-        if (isUserSource || ApiConfig.getLiveGroupIndex() != 0) {
-            Hawk.put(HawkConfig.LIVE_API_URL, apiUrl);
-            ApiConfig.setLiveGroupIndex(0);
-            return true;
-        }
-        return false;
     }
 
     private void openFullscreenLive() {
@@ -464,7 +443,7 @@ public class LiveFragment extends BaseLazyFragment {
                             if (isActivityUnavailable()) return;
                             // 切换的直播线路加载失败 → 自动回退到上一次加载成功的线路
                             String failedName = MoreSourceHelper.getCurrentLiveLineName();
-                            if (recoverToAvailableLiveLine()) {
+                            if (MoreSourceHelper.recoverToAvailableLiveLine()) {
                                 Toast.makeText(mActivity, (failedName.isEmpty() ? "直播线路" : failedName)
                                         + "加载失败！已切回原直播线路", Toast.LENGTH_SHORT).show();
                                 loadLiveChannels();
@@ -1484,6 +1463,7 @@ public class LiveFragment extends BaseLazyFragment {
     }
 
     private int indexOfItemIndex(LiveSettingGroup group, int itemIndex) {
+        if (itemIndex < 0) return -1;
         if (group == null || group.getLiveSettingItems() == null) return 0;
         List<LiveSettingItem> items = group.getLiveSettingItems();
         for (int i = 0; i < items.size(); i++) {
@@ -1614,7 +1594,7 @@ public class LiveFragment extends BaseLazyFragment {
     private void switchLiveSource(MoreSourceBean bean) {
         if (bean == null) return;
         if (bean.isShowDelete()) {
-            loadLiveConfigSource(bean.getSourceUrl(), false);
+            loadLiveConfigSource(bean.getSourceUrl());
             return;
         }
         switchLiveApiGroup(bean.getLiveGroupIndex());
@@ -1652,18 +1632,18 @@ public class LiveFragment extends BaseLazyFragment {
         // 使用"线路切换"弹窗的线路快照，保证两边内容一一对应
         List<MoreSourceBean> lines = MoreSourceHelper.getConfigSwitchLines();
         if (position < 0 || position >= lines.size()) return;
-        loadLiveConfigSource(lines.get(position).getSourceUrl(), true);
+        loadLiveConfigSource(lines.get(position).getSourceUrl());
     }
 
     /** 切换直播配置地址（"配置切换"与"多源切换"中的用户自定义直播源共用） */
-    private void loadLiveConfigSource(final String value, final boolean addHistory) {
-        String oldValue = Hawk.get(HawkConfig.LIVE_API_URL, "");
+    private void loadLiveConfigSource(final String value) {
+        final String oldValue = Hawk.get(HawkConfig.LIVE_API_URL, "");
+        final int oldGroupIndex = ApiConfig.getLiveGroupIndex();
         if (value == null || value.isEmpty() || value.equals(oldValue)) return;
         final String channelName = currentChannelItem == null ? "" : currentChannelItem.getChannelName();
         final int sourceIndex = currentChannelItem == null ? -1 : currentChannelItem.getSourceIndex();
         Hawk.put(HawkConfig.LIVE_API_URL, value);
         ApiConfig.setLiveGroupIndex(0); // 默认使用该配置的第一条直播线路
-        if (addHistory) HistoryHelper.setLiveApiHistory(value);
         ApiConfig.get().refreshLiveApiHistoryItems();
         ApiConfig.get().refreshLiveMultiSourceItems();
         refreshGroupSelection(5, MoreSourceHelper.getCurrentLiveLineIndex());
@@ -1688,8 +1668,16 @@ public class LiveFragment extends BaseLazyFragment {
                     @Override
                     public void run() {
                         if (isActivityUnavailable()) return;
-                        showSuccess();
+                        // 切换失败 → 回滚到原直播配置地址与分组，再按原配置重新加载
+                        Hawk.put(HawkConfig.LIVE_API_URL, oldValue);
+                        ApiConfig.setLiveGroupIndex(oldGroupIndex);
+                        ApiConfig.get().refreshLiveApiHistoryItems();
+                        ApiConfig.get().refreshLiveMultiSourceItems();
+                        refreshGroupSelection(5, MoreSourceHelper.getCurrentLiveLineIndex());
+                        refreshGroupSelection(6, getCurrentLiveApiHistoryIndex());
                         Toast.makeText(mActivity, msg, Toast.LENGTH_SHORT).show();
+                        showLoading();
+                        loadLiveChannels();
                     }
                 });
             }

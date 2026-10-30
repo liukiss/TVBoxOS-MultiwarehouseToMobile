@@ -266,11 +266,45 @@ public class MoreSourceHelper {
         clearConfigLiveLines();
         clearLastGoodLiveLine();
         ApiConfig.get().refreshLiveMultiSourceItems();
-        HistoryHelper.setLiveApiHistory(line.getSourceUrl());
-        // ④ 仅手动添加的单线路保存到"已保存线路"（去重，上限 30）
+        // ④ 配置地址变更 → 重建"配置切换"快照（避免快照与当前线路不一致）
+        syncConfigSwitchSnapshot();
+        // ⑤ 仅手动添加的单线路保存到"已保存线路"（去重，上限 30）
         if (saveToList) {
             addLineHistory(line);
         }
+    }
+
+    /**
+     * 配置地址变更后统一调用：重建"配置切换"快照并刷新列表。
+     * 快照中已包含当前线路时不重建（保留"线路切换"弹窗渲染出的完整列表）。
+     */
+    public static void syncConfigSwitchSnapshot() {
+        String currentUrl = Hawk.get(HawkConfig.API_URL, "");
+        if (currentUrl == null || currentUrl.isEmpty()) return;
+        for (MoreSourceBean bean : getConfigSwitchLines()) {
+            if (currentUrl.equals(bean.getSourceUrl())) {
+                ApiConfig.get().refreshLiveApiHistoryItems();
+                return;
+            }
+        }
+        List<MoreSourceBean> rebuilt = new ArrayList<>();
+        MoreSourceBean cur = getCurrentLineBean();
+        MoreSourceBean current = new MoreSourceBean();
+        current.setSourceUrl(currentUrl);
+        current.setSourceName(cur != null && currentUrl.equals(cur.getSourceUrl()) ? cur.getSourceName() : "");
+        current.setShowDelete(false);
+        rebuilt.add(current);
+        for (MoreSourceBean bean : getLineHistory()) {
+            if (bean == null || bean.getSourceUrl() == null || bean.getSourceUrl().isEmpty()) continue;
+            if (currentUrl.equals(bean.getSourceUrl())) continue;
+            MoreSourceBean copy = new MoreSourceBean();
+            copy.setSourceName(bean.getSourceName());
+            copy.setSourceUrl(bean.getSourceUrl());
+            copy.setShowDelete(false);
+            rebuilt.add(copy);
+        }
+        saveConfigSwitchLines(rebuilt);
+        ApiConfig.get().refreshLiveApiHistoryItems();
     }
 
     /** 兼容旧调用：默认不保存到列表 */
@@ -333,8 +367,9 @@ public class MoreSourceHelper {
         list.add(0, bean);
         while (list.size() > 30) list.remove(list.size() - 1);
         saveLiveSourceList(list);
-        // 原生直播链路（用户自定义直播源不写入"配置切换"历史，只在"多源切换"中展示）
+        // 原生直播链路（直播历史仅记录用户自定义源，供"直播历史配置"读取）
         Hawk.put(HawkConfig.LIVE_API_URL, finalUrl);
+        HistoryHelper.setLiveApiHistory(finalUrl);
     }
 
     /* ---------- 接口配置文件中的直播线路（直播地址弹窗 + 多源切换共用） ---------- */
@@ -474,7 +509,8 @@ public class MoreSourceHelper {
         for (int i = 0; i < list.size(); i++) {
             if (apiUrl != null && !apiUrl.isEmpty() && apiUrl.equals(list.get(i).getSourceUrl())) return i;
         }
-        return 0;
+        // 当前线路不在快照中 → 返回 -1（调用方不选中任何项，避免误选中第 0 项）
+        return -1;
     }
 
     public static boolean isUserLiveSource(String url) {
@@ -572,15 +608,24 @@ public class MoreSourceHelper {
         return true;
     }
 
-    /** "配置切换"历史中剔除用户自行添加的直播源（用户源只在"多源切换"展示） */
-    public static void pruneUserLiveFromHistory() {
-        ArrayList<String> history = Hawk.get(HawkConfig.LIVE_API_HISTORY, new ArrayList<String>());
-        if (history == null || history.isEmpty()) return;
-        ArrayList<String> filtered = new ArrayList<>();
-        for (String url : history) {
-            if (url != null && !url.isEmpty() && !isUserLiveSource(url)) filtered.add(url);
+    /**
+     * 直播列表加载失败时的回退：
+     * 1) 先回到最近一次加载成功的直播线路；
+     * 2) 不可用时退到接口配置地址的第一条直播线路；
+     * 返回是否发生了回退。
+     */
+    public static boolean recoverToAvailableLiveLine() {
+        if (restoreLastGoodLiveLine()) return true;
+        String apiUrl = Hawk.get(HawkConfig.API_URL, "");
+        if (apiUrl == null || apiUrl.isEmpty()) return false;
+        String liveUrl = Hawk.get(HawkConfig.LIVE_API_URL, "");
+        boolean isUserSource = liveUrl != null && !liveUrl.isEmpty() && !liveUrl.equals(apiUrl);
+        if (isUserSource || ApiConfig.getLiveGroupIndex() != 0) {
+            Hawk.put(HawkConfig.LIVE_API_URL, apiUrl);
+            ApiConfig.setLiveGroupIndex(0);
+            return true;
         }
-        Hawk.put(HawkConfig.LIVE_API_HISTORY, filtered);
+        return false;
     }
 
     /* ========== 远程推送/静默添加（不依赖 UI，供 ControlManager 等后台调用） ========== */

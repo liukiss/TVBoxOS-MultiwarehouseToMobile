@@ -61,10 +61,8 @@ import com.github.tvbox.osc.util.DefaultConfig;
 import com.github.tvbox.osc.util.EpgUtil;
 import com.github.tvbox.osc.util.FastClickCheckUtil;
 import com.github.tvbox.osc.util.HawkConfig;
-import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.util.OkGoHelper;
 import com.github.tvbox.osc.util.PlayerHelper;
-import com.github.tvbox.osc.util.HistoryHelper;
 import com.github.tvbox.osc.util.MoreSourceHelper;
 import com.github.tvbox.osc.util.live.TxtSubscribe;
 import com.google.gson.JsonArray;
@@ -700,7 +698,6 @@ public class LivePlayActivity extends BaseActivity {
             updateEpgPanelState(false);
             return;
         }
-        LOG.i("echo-epgTagName:" + channelNameReal);
         ArrayList<Epginfo> arrayList = new ArrayList<Epginfo>();
         try {
             if (isXmlEpgResponse(paramString)) {
@@ -727,7 +724,6 @@ public class LivePlayActivity extends BaseActivity {
             return false;
         }
         String fallbackUrl = buildEpgUrl(DEFAULT_EPG_ADDRESS, epgQueryNames.get(0), date, timeFormat);
-        LOG.i("echo-epg fallback default address");
         requestEpg(fallbackUrl, date, channelNameReal, finalEpgTagName, savedEpgKey, epgQueryNames, timeFormat, epgQueryNames.size());
         return true;
     }
@@ -739,7 +735,6 @@ public class LivePlayActivity extends BaseActivity {
         }
         int nextIndex = queryIndex + 1;
         String nextUrl = buildEpgUrl(epgStringAddress, epgQueryNames.get(nextIndex), date, timeFormat);
-        LOG.i("echo-epg retry query name:" + epgQueryNames.get(nextIndex));
         requestEpg(nextUrl, date, channelNameReal, finalEpgTagName, savedEpgKey, epgQueryNames, timeFormat, nextIndex);
         return true;
     }
@@ -1626,7 +1621,6 @@ public class LivePlayActivity extends BaseActivity {
 
         if(livesOBJ.has("catchup") && livesOBJ.get("catchup").isJsonObject()){
             catchup = livesOBJ.getAsJsonObject("catchup");
-            LOG.i("echo-catchup :"+ catchup.toString());
         }
         if(livesOBJ.has("logo")){
             logoUrl = livesOBJ.get("logo").getAsString();
@@ -1645,7 +1639,6 @@ public class LivePlayActivity extends BaseActivity {
                 }else {
                     ext= DefaultConfig.safeJsonString(livesOBJ, "ext", "");
                 }
-                LOG.i("echo-ext:"+ext);
                 if(!ext.isEmpty())py_jar=py_jar+"?extend="+ext;
             }
             ApiConfig.get().setLiveJar(py_jar);
@@ -1844,7 +1837,6 @@ public class LivePlayActivity extends BaseActivity {
         backcontroller.setVisibility(View.GONE);
         ll_right_top_huikan.setVisibility(View.GONE);
         if(mVideoView!=null){
-            if(liveChannelHeader()!=null)LOG.i("echo-"+liveChannelHeader().toString());
             boolean reusePlayer = canReusePlayer(previousLivePlayerType);
             boolean keepExoFrame = reusePlayer && previousLivePlayerType == 2;
             if (showPreviousFrame && !keepExoFrame) {
@@ -2072,7 +2064,6 @@ public class LivePlayActivity extends BaseActivity {
                     //mCanSeek=true;
                     shiyiUrl = buildCatchupUrl(shiyiUrl, selectedData);
                     if (TextUtils.isEmpty(shiyiUrl)) return;
-                    LOG.i("echo-回看地址playUrl :"+ shiyiUrl);
                     playUrl = shiyiUrl;
 
                     mVideoView.setUrl(playUrl,liveChannelHeader());
@@ -2139,9 +2130,7 @@ public class LivePlayActivity extends BaseActivity {
                     //mCanSeek=true;
                     shiyiUrl = buildCatchupUrl(shiyiUrl, selectedData);
                     if (TextUtils.isEmpty(shiyiUrl)) return;
-                    LOG.i("echo-回看地址playUrl :"+ shiyiUrl);
                     playUrl = shiyiUrl;
-                    if(liveChannelHeader()!=null)LOG.i("echo-liveWebHeader :"+ liveChannelHeader().toString());
                     mVideoView.setUrl(playUrl,liveChannelHeader());
                     mVideoView.start();
                     epgListAdapter.setShiyiSelection(position, true,timeFormat.format(date));
@@ -2186,7 +2175,6 @@ public class LivePlayActivity extends BaseActivity {
         LiveDayListGroup daylist = new LiveDayListGroup();
         Date newday= new Date((nowday.getTime()));
         String day = formatDate1.format(newday);
-        LOG.i("echo-date"+day);
         daylist.setGroupIndex(0);
         daylist.setGroupName(day);
         liveDayList.add(daylist);
@@ -2314,7 +2302,6 @@ public class LivePlayActivity extends BaseActivity {
                         mHandler.postDelayed(mConnectTimeoutChangeSourceRun, (Hawk.get(HawkConfig.LIVE_CONNECT_TIMEOUT, 1) + 1) * 5000L);
                         break;
                     default:
-                        LOG.i("echo-Unexpected live_play state: " + playState);
                         break;
                 }
             }
@@ -2718,6 +2705,8 @@ public class LivePlayActivity extends BaseActivity {
                     liveSettingItemAdapter.selectItem(position, true, true);
                     if (value == null || value.isEmpty() || value.equals(oldLiveApi)) break;
                     final int requestId = ++liveConfigRequestId;
+                    final String oldLiveApiValue = oldLiveApi;
+                    final int oldGroupIndex = ApiConfig.getLiveGroupIndex();
                     Hawk.put(HawkConfig.LIVE_API_URL, value);
                     ApiConfig.setLiveGroupIndex(0); // 默认使用该配置的第一条直播线路
                     ApiConfig.get().refreshLiveApiHistoryItems();
@@ -2741,9 +2730,13 @@ public class LivePlayActivity extends BaseActivity {
                                 public void run() {
                                     if (requestId != liveConfigRequestId || isFinishing()) return;
                                     if (mVideoView != null) mVideoView.release();
+                                    // 切换失败 → 回滚到原直播线路并重新加载
+                                    Hawk.put(HawkConfig.LIVE_API_URL, oldLiveApiValue);
+                                    ApiConfig.setLiveGroupIndex(oldGroupIndex);
                                     ApiConfig.get().refreshLiveApiHistoryItems();
-                                    setEmptyLiveChannelList(false);
+                                    ApiConfig.get().refreshLiveMultiSourceItems();
                                     Toast.makeText(LivePlayActivity.this, msg, Toast.LENGTH_SHORT).show();
+                                    refreshLiveChannelListAndPlay(currentChannelName, currentSourceIndex);
                                 }
                             });
                         }
@@ -2768,6 +2761,7 @@ public class LivePlayActivity extends BaseActivity {
                 boolean wasConfigSource = oldLiveApi == null || oldLiveApi.isEmpty()
                         || (apiUrl != null && oldLiveApi.equals(apiUrl));
                 if (wasConfigSource && groupIndex == ApiConfig.getLiveGroupIndex()) break;
+                int oldGroupIndex = ApiConfig.getLiveGroupIndex();
                 liveConfigRequestId++;
                 liveSettingItemAdapter.selectItem(position, true, true);
                 if (apiUrl != null) Hawk.put(HawkConfig.LIVE_API_URL, apiUrl);
@@ -2777,8 +2771,12 @@ public class LivePlayActivity extends BaseActivity {
                 JsonObject livesOBJ = live_groups.get(groupIndex).getAsJsonObject();
                 ApiConfig.get().loadLiveApi(livesOBJ);
                 if (ApiConfig.get().getChannelGroupList().isEmpty()) {
-                    if (mVideoView != null) mVideoView.release();
-                    setEmptyLiveChannelList(false);
+                    // 切换失败 → 回滚原直播线路与分组并重新加载
+                    Hawk.put(HawkConfig.LIVE_API_URL, oldLiveApi);
+                    ApiConfig.setLiveGroupIndex(oldGroupIndex);
+                    ApiConfig.get().refreshLiveApiHistoryItems();
+                    ApiConfig.get().refreshLiveMultiSourceItems();
+                    refreshLiveChannelListAndPlay(currentChannelName, currentSourceIndex);
                     break;
                 }
                 refreshLiveChannelListAndPlay(currentChannelName, currentSourceIndex);
@@ -2795,9 +2793,10 @@ public class LivePlayActivity extends BaseActivity {
                 liveSettingItemAdapter.selectItem(position, true, true);
                 if (value.equals(oldLiveApi)) break;
                 final int requestId = ++liveConfigRequestId;
+                final String oldLiveApiValue = oldLiveApi;
+                final int oldGroupIndex = ApiConfig.getLiveGroupIndex();
                 Hawk.put(HawkConfig.LIVE_API_URL, value);
                 ApiConfig.setLiveGroupIndex(0); // 默认使用该配置的第一条直播线路
-                HistoryHelper.setLiveApiHistory(value);
                 ApiConfig.get().refreshLiveApiHistoryItems();
                 ApiConfig.get().refreshLiveMultiSourceItems();
                 ApiConfig.get().loadLiveConfig(false, new ApiConfig.LoadConfigCallback() {
@@ -2819,9 +2818,13 @@ public class LivePlayActivity extends BaseActivity {
                             public void run() {
                                 if (requestId != liveConfigRequestId || isFinishing()) return;
                                 if (mVideoView != null) mVideoView.release();
+                                // 切换失败 → 回滚到原直播配置地址与分组并重新加载
+                                Hawk.put(HawkConfig.LIVE_API_URL, oldLiveApiValue);
+                                ApiConfig.setLiveGroupIndex(oldGroupIndex);
                                 ApiConfig.get().refreshLiveApiHistoryItems();
-                                setEmptyLiveChannelList(false);
+                                ApiConfig.get().refreshLiveMultiSourceItems();
                                 Toast.makeText(LivePlayActivity.this, msg, Toast.LENGTH_SHORT).show();
+                                refreshLiveChannelListAndPlay(configChannelName, configSourceIndex);
                             }
                         });
                     }
@@ -2903,6 +2906,38 @@ public class LivePlayActivity extends BaseActivity {
     }
 
     private boolean loadingLiveConfigOnEnter = false;
+    /** 本次加载失败是否已尝试过自动回退（防止 A→B→A 反复回退） */
+    private boolean liveListFallbackAttempted = false;
+
+    /**
+     * 直播列表加载失败：自动切回上一次可用的直播线路并重新加载，
+     * 无可回退线路时显示空状态并提示前往配置添加。
+     */
+    private void onLiveListLoadFailed() {
+        if (isFinishing()) return;
+        if (!liveListFallbackAttempted && MoreSourceHelper.recoverToAvailableLiveLine()) {
+            liveListFallbackAttempted = true;
+            showLiveListFailedToast("直播列表加载失败，该配置下无可用源，切回原直播！");
+            loadingLiveConfigOnEnter = false;
+            initLiveChannelList();
+            initLiveSettingGroupList();
+            return;
+        }
+        showLiveListFailedToast("直播列表加载失败，无可用直播源，请前往配置添加！");
+        setEmptyLiveChannelList();
+    }
+
+    /** 固定显示 3 秒的提示 */
+    private void showLiveListFailedToast(String msg) {
+        final Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
+        toast.show();
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                toast.cancel();
+            }
+        }, 3000);
+    }
 
     private void loadLiveConfigOnEnter() {
         if (loadingLiveConfigOnEnter) return;
@@ -2915,6 +2950,7 @@ public class LivePlayActivity extends BaseActivity {
                     @Override
                     public void run() {
                         loadingLiveConfigOnEnter = false;
+                        liveListFallbackAttempted = false;
                         initLiveChannelList();
                         initLiveSettingGroupList();
                     }
@@ -2927,7 +2963,7 @@ public class LivePlayActivity extends BaseActivity {
                     @Override
                     public void run() {
                         loadingLiveConfigOnEnter = false;
-                        setEmptyLiveChannelList();
+                        onLiveListLoadFailed();
                     }
                 });
             }
@@ -2950,19 +2986,17 @@ public class LivePlayActivity extends BaseActivity {
             url = new String(Base64.decode(parsedUrl.getQueryParameter("ext"), Base64.DEFAULT | Base64.URL_SAFE | Base64.NO_WRAP), "UTF-8");
         } catch (Throwable th) {
             if (!url.startsWith("http://127.0.0.1")) {
-                setEmptyLiveChannelList();
+                onLiveListLoadFailed();
                 return;
             }
         }
         if (!isValidLiveProxyUrl(url)) {
-            setEmptyLiveChannelList();
+            onLiveListLoadFailed();
             return;
         }
         if (!refreshingLiveChannelList) {
             showLoading();
         }
-
-        LOG.i("echo-live-url:"+url);
 
         if(url.contains(".py") || url.contains(".js")){
             String finalUrl = url;
@@ -2975,7 +3009,6 @@ public class LivePlayActivity extends BaseActivity {
                         public String call() {
                             Spider sp = ApiConfig.get().getLiveCSP(finalUrl);
                             String json=sp.liveContent(finalUrl);
-//                            LOG.i("echo--loadProxyLives-json--"+json);
                             return json;
                         }
                     });
@@ -2989,11 +3022,11 @@ public class LivePlayActivity extends BaseActivity {
                         e.printStackTrace();
                     } finally {
                         if (sortJson==null || sortJson.isEmpty()) {
-                            // 频道列表为空时，使用默认播放列表
+                            // 频道列表为空时，回退到可用直播线路
                             mHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    setEmptyLiveChannelList();
+                                    onLiveListLoadFailed();
                                 }
                             });
                             return;
@@ -3006,7 +3039,7 @@ public class LivePlayActivity extends BaseActivity {
                             mHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    setEmptyLiveChannelList();
+                                    onLiveListLoadFailed();
                                 }
                             });
                             return;
@@ -3047,7 +3080,7 @@ public class LivePlayActivity extends BaseActivity {
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                setEmptyLiveChannelList();
+                                onLiveListLoadFailed();
                             }
                         });
                         return;
@@ -3067,7 +3100,7 @@ public class LivePlayActivity extends BaseActivity {
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            setEmptyLiveChannelList();
+                            onLiveListLoadFailed();
                         }
                     });
                 }
