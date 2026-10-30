@@ -1147,16 +1147,19 @@ public class ApiConfig {
         return liveSettingGroupList;
     }
 
+    /**
+     * 重建"配置切换"列表：直接使用"线路切换"弹窗的线路快照（名称+地址），
+     * 两处（设置页"线路切换"、直播控制页/播放器"配置切换"）内容时时一致。
+     */
     public void refreshLiveApiHistoryItems() {
+        if (liveSettingGroupList.size() < 7) initLiveSettings();
         if (liveSettingGroupList.size() < 7) return;
-        // 用户自行添加的直播源从"配置切换"历史中剔除（只在"多源切换"展示）
-        MoreSourceHelper.pruneUserLiveFromHistory();
         ArrayList<LiveSettingItem> liveSettingItemList = new ArrayList<>();
-        ArrayList<String> history = Hawk.get(HawkConfig.LIVE_API_HISTORY, new ArrayList<String>());
-        for (int i = 0; i < history.size(); i++) {
+        List<MoreSourceBean> lines = MoreSourceHelper.getConfigSwitchLines();
+        for (int i = 0; i < lines.size(); i++) {
             LiveSettingItem liveSettingItem = new LiveSettingItem();
             liveSettingItem.setItemIndex(i);
-            liveSettingItem.setItemName(history.get(i));
+            liveSettingItem.setItemName(MoreSourceHelper.getLineDisplayName(lines.get(i)));
             liveSettingItemList.add(liveSettingItem);
         }
         liveSettingGroupList.get(6).setLiveSettingItems(liveSettingItemList);

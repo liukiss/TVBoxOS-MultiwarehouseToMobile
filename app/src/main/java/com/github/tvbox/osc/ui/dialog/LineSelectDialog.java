@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.tvbox.osc.R;
+import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.bean.MoreSourceBean;
 import com.github.tvbox.osc.ui.adapter.LineSelectAdapter;
 import com.github.tvbox.osc.util.HawkConfig;
@@ -104,6 +105,7 @@ public class LineSelectDialog extends BaseDialog {
                 MoreSourceHelper.resetAutoCounter(MoreSourceHelper.KEY_AUTO_NAME_LINE,
                         MoreSourceHelper.AUTO_PREFIX_LINE, MoreSourceHelper.getLineHistory());
                 mAdapter.setData(new ArrayList<>(lineList));
+                syncConfigSwitchLines();
             }
         });
         mListView.setLayoutManager(new LinearLayoutManager(mContext));
@@ -153,7 +155,7 @@ public class LineSelectDialog extends BaseDialog {
         // 无选中仓库 → 直接展示当前列表（纯仓库模式下为空）
         if (selectedStore == null || selectedStore.getSourceUrl() == null || selectedStore.getSourceUrl().isEmpty()) {
             mAdapter.setData(new ArrayList<>(lineList));
-
+            syncConfigSwitchLines();
             return;
         }
 
@@ -193,7 +195,7 @@ public class LineSelectDialog extends BaseDialog {
                             hideLoading();
                             Toast.makeText(mContext, "线路加载失败:" + err, Toast.LENGTH_SHORT).show();
                             mAdapter.setData(new ArrayList<>(lineList));
-                
+                            syncConfigSwitchLines();
                             return;
                         }
                         parseLines(res, url);
@@ -224,7 +226,7 @@ public class LineSelectDialog extends BaseDialog {
                     }
                 }
                 mAdapter.setData(new ArrayList<>(lineList));
-    
+                syncConfigSwitchLines();
                 return;
             }
             JSONArray urls = json.getJSONArray("urls");
@@ -251,12 +253,20 @@ public class LineSelectDialog extends BaseDialog {
             lineList.clear();
             lineList.addAll(map.values());
             mAdapter.setData(new ArrayList<>(lineList));
+            syncConfigSwitchLines();
 
         } catch (Throwable th) {
             Toast.makeText(mContext, "接口无效，请更换接口" + th.getMessage(), Toast.LENGTH_SHORT).show();
             mAdapter.setData(new ArrayList<>(lineList));
-
+            syncConfigSwitchLines();
         }
+    }
+
+    /** "线路切换"内容变化 → 同步直播"配置切换"（控制页/播放器共用同一份数据） */
+    private void syncConfigSwitchLines() {
+        if (!showHistory) return;
+        MoreSourceHelper.saveConfigSwitchLines(lineList);
+        ApiConfig.get().refreshLiveApiHistoryItems();
     }
 
     private void showLoading() {

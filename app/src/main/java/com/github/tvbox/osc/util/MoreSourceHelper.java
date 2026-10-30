@@ -42,6 +42,8 @@ public class MoreSourceHelper {
     public static final String KEY_LIVE_LAST_GOOD_URL = "live_last_good_api_url";
     /** 最近一次加载成功的直播线路分组序号 */
     public static final String KEY_LIVE_LAST_GOOD_INDEX = "live_last_good_group_index";
+    /** "线路切换"弹窗最近一次展示的线路快照（直播"配置切换"与之保持同一份内容） */
+    public static final String KEY_CONFIG_SWITCH_LINES = "config_switch_lines";
 
     // v2.1.6 自动命名计数器（仓库N/线路N/直播源N）
     public static final String KEY_AUTO_NAME_STORE = "auto_name_store_counter";
@@ -387,6 +389,92 @@ public class MoreSourceHelper {
         if (bean == null) return "";
         String name = bean.getSourceName() == null ? "" : bean.getSourceName().trim();
         return name.isEmpty() ? bean.getSourceUrl() : name;
+    }
+
+    /** 保存"线路切换"弹窗当前展示的线路快照（名称+地址），供直播"配置切换"同步展示 */
+    public static void saveConfigSwitchLines(List<MoreSourceBean> lines) {
+        try {
+            JSONArray array = new JSONArray();
+            if (lines != null) {
+                for (MoreSourceBean bean : lines) {
+                    if (bean == null || bean.getSourceUrl() == null || bean.getSourceUrl().isEmpty()) continue;
+                    JSONObject obj = new JSONObject();
+                    obj.put("name", bean.getSourceName() == null ? "" : bean.getSourceName());
+                    obj.put("url", bean.getSourceUrl());
+                    array.put(obj);
+                }
+            }
+            Hawk.put(KEY_CONFIG_SWITCH_LINES, array.toString());
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** "线路切换"弹窗的线路快照；为空时回退到已保存线路/当前线路，保证"配置切换"不为空 */
+    public static List<MoreSourceBean> getConfigSwitchLines() {
+        List<MoreSourceBean> list = new ArrayList<>();
+        String json = Hawk.get(KEY_CONFIG_SWITCH_LINES, "[]");
+        try {
+            JSONArray array = new JSONArray(json == null || json.isEmpty() ? "[]" : json);
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject obj = array.optJSONObject(i);
+                if (obj == null) continue;
+                String url = obj.optString("url", "");
+                if (url == null || url.isEmpty()) continue;
+                MoreSourceBean bean = new MoreSourceBean();
+                bean.setSourceName(obj.optString("name", ""));
+                bean.setSourceUrl(url);
+                bean.setShowDelete(false);
+                list.add(bean);
+            }
+        } catch (Throwable ignored) {
+        }
+        if (list.isEmpty()) {
+            // 快照未生成时，用"已保存线路"兜底，尽量与"线路切换"弹窗内容一致
+            for (MoreSourceBean bean : getLineHistory()) {
+                if (bean == null || bean.getSourceUrl() == null || bean.getSourceUrl().isEmpty()) continue;
+                MoreSourceBean copy = new MoreSourceBean();
+                copy.setSourceName(bean.getSourceName());
+                copy.setSourceUrl(bean.getSourceUrl());
+                copy.setShowDelete(false);
+                list.add(copy);
+            }
+        }
+        if (list.isEmpty()) {
+            MoreSourceBean cur = getCurrentLineBean();
+            String apiUrl = Hawk.get(HawkConfig.API_URL, "");
+            if (cur != null && cur.getSourceUrl() != null) {
+                list.add(cur);
+            } else if (apiUrl != null && !apiUrl.isEmpty()) {
+                MoreSourceBean bean = new MoreSourceBean();
+                bean.setSourceName(apiUrl);
+                bean.setSourceUrl(apiUrl);
+                bean.setShowDelete(false);
+                list.add(bean);
+            }
+        }
+        return list;
+    }
+
+    /** 线路弹窗显示名：有名称用名称，否则用地址 */
+    public static String getLineDisplayName(MoreSourceBean bean) {
+        if (bean == null) return "";
+        String name = bean.getSourceName() == null ? "" : bean.getSourceName().trim();
+        if (name.isEmpty() || name.equals(bean.getSourceUrl())) return bean.getSourceUrl();
+        return name;
+    }
+
+    /** 当前直播对应的"配置切换"列表位置 */
+    public static int getConfigSwitchIndex() {
+        List<MoreSourceBean> list = getConfigSwitchLines();
+        String liveUrl = Hawk.get(HawkConfig.LIVE_API_URL, "");
+        String apiUrl = Hawk.get(HawkConfig.API_URL, "");
+        for (int i = 0; i < list.size(); i++) {
+            if (liveUrl != null && !liveUrl.isEmpty() && liveUrl.equals(list.get(i).getSourceUrl())) return i;
+        }
+        for (int i = 0; i < list.size(); i++) {
+            if (apiUrl != null && !apiUrl.isEmpty() && apiUrl.equals(list.get(i).getSourceUrl())) return i;
+        }
+        return 0;
     }
 
     public static boolean isUserLiveSource(String url) {

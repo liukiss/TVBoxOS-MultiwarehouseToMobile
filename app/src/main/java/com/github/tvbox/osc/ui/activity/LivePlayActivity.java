@@ -2573,6 +2573,10 @@ public class LivePlayActivity extends BaseActivity {
             // 多源切换：每次展开都按"直播地址"弹窗的同一份列表重建
             ApiConfig.get().refreshLiveMultiSourceItems();
         }
+        if (position == 6) {
+            // 配置切换：每次展开都按"线路切换"弹窗的线路快照重建，保证两处内容一致
+            ApiConfig.get().refreshLiveApiHistoryItems();
+        }
         liveSettingItemAdapter.setNewData(liveSettingGroupList.get(position).getLiveSettingItems());
 
         switch (position) {
@@ -2781,9 +2785,10 @@ public class LivePlayActivity extends BaseActivity {
                 break;
             }
             case 6: {//配置切换
-                ArrayList<String> history = Hawk.get(HawkConfig.LIVE_API_HISTORY, new ArrayList<String>());
-                if (history.isEmpty() || position < 0 || position >= history.size()) break;
-                String value = history.get(position);
+                // 使用"线路切换"弹窗的线路快照，保证两边内容一一对应
+                List<MoreSourceBean> configLines = MoreSourceHelper.getConfigSwitchLines();
+                if (position < 0 || position >= configLines.size()) break;
+                String value = configLines.get(position).getSourceUrl();
                 String oldLiveApi = Hawk.get(HawkConfig.LIVE_API_URL, "");
                 String configChannelName = getPreferredLiveRefreshChannelName();
                 int configSourceIndex = getPreferredLiveRefreshSourceIndex();
@@ -2875,11 +2880,8 @@ public class LivePlayActivity extends BaseActivity {
     }
 
     private int getCurrentLiveApiHistoryIndex() {
-        ArrayList<String> history = Hawk.get(HawkConfig.LIVE_API_HISTORY, new ArrayList<String>());
-        if (history.isEmpty()) return -1;
-        String current = Hawk.get(HawkConfig.LIVE_API_URL, "");
-        int idx = history.indexOf(current);
-        return idx >= 0 ? idx : -1;
+        // 与"线路切换"弹窗保持一致：直接读取该弹窗最近一次渲染出的线路快照
+        return MoreSourceHelper.getConfigSwitchIndex();
     }
 
     private void initLiveChannelList() {

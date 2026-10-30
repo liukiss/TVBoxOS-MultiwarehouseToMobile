@@ -1398,11 +1398,8 @@ public class LiveFragment extends BaseLazyFragment {
     }
 
     private int getCurrentLiveApiHistoryIndex() {
-        ArrayList<String> history = Hawk.get(HawkConfig.LIVE_API_HISTORY, new ArrayList<String>());
-        if (history == null || history.isEmpty()) return 0;
-        String current = Hawk.get(HawkConfig.LIVE_API_URL, "");
-        int index = history.indexOf(current);
-        return index >= 0 ? index : 0;
+        // 与"线路切换"弹窗保持一致：直接读取该弹窗最近一次渲染出的线路快照
+        return MoreSourceHelper.getConfigSwitchIndex();
     }
 
     private void showSelectDialog(String title, ArrayList<String> items, int select, final OnOptionSelected callback) {
@@ -1553,6 +1550,8 @@ public class LiveFragment extends BaseLazyFragment {
     }
 
     private void showConfigDialog() {
+        // 每次展开都按"线路切换"弹窗的线路快照重建，保证两处内容一致
+        ApiConfig.get().refreshLiveApiHistoryItems();
         final LiveSettingGroup group = findSettingGroup(6);
         if (group == null) return;
         showSelectDialog("配置切换", settingItemNames(group),
@@ -1604,9 +1603,10 @@ public class LiveFragment extends BaseLazyFragment {
     }
 
     private void switchLiveConfig(int position) {
-        ArrayList<String> history = Hawk.get(HawkConfig.LIVE_API_HISTORY, new ArrayList<String>());
-        if (history == null || position < 0 || position >= history.size()) return;
-        loadLiveConfigSource(history.get(position), true);
+        // 使用"线路切换"弹窗的线路快照，保证两边内容一一对应
+        List<MoreSourceBean> lines = MoreSourceHelper.getConfigSwitchLines();
+        if (position < 0 || position >= lines.size()) return;
+        loadLiveConfigSource(lines.get(position).getSourceUrl(), true);
     }
 
     /** 切换直播配置地址（"配置切换"与"多源切换"中的用户自定义直播源共用） */
