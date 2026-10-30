@@ -380,12 +380,12 @@ public class LiveFragment extends BaseLazyFragment {
     private void onLiveListLoadFailed() {
         if (isActivityUnavailable()) return;
         if (recoverToAvailableLiveLine()) {
-            showLiveListFailedToast("直播列表加载失败，该直播源不可用，切回原直播！");
+            showLiveListFailedToast("直播列表加载失败，该配置下无可用源，切回原直播！");
             loadLiveChannels();
             return;
         }
         // 没有可回退的线路：至少停止后台播放，避免"有声音但无法操作"
-        showLiveListFailedToast("直播列表加载失败，该直播源不可用！");
+        showLiveListFailedToast("直播列表加载失败，无可用直播源，请前往配置添加！");
         if (mVideoView != null) mVideoView.release();
         showEmpty();
     }
