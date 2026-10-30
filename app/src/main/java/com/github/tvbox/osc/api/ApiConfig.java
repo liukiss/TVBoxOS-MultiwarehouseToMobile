@@ -21,6 +21,7 @@ import com.github.tvbox.osc.bean.IJKCode;
 import com.github.tvbox.osc.bean.LiveChannelItem;
 import com.github.tvbox.osc.bean.LiveSettingGroup;
 import com.github.tvbox.osc.bean.LiveSettingItem;
+import com.github.tvbox.osc.bean.MoreSourceBean;
 import com.github.tvbox.osc.bean.ParseBean;
 import com.github.tvbox.osc.bean.ProxyRule;
 import com.github.tvbox.osc.bean.SourceBean;
@@ -34,6 +35,7 @@ import com.github.tvbox.osc.util.HistoryHelper;
 import com.github.tvbox.osc.util.LOG;
 import com.github.tvbox.osc.util.M3u8;
 import com.github.tvbox.osc.util.MD5;
+import com.github.tvbox.osc.util.MoreSourceHelper;
 import com.github.tvbox.osc.util.OkGoHelper;
 import com.github.tvbox.osc.util.Proxy;
 import com.github.tvbox.osc.util.VideoParseRuler;
@@ -277,6 +279,7 @@ public class ApiConfig {
                 parseLiveConfigContent(liveApiUrl, live_cache);
                 if (hasLiveConfigResult()) {
                     loadedLiveConfigUrl = liveApiUrl;
+                    MoreSourceHelper.rememberGoodLiveLine();
                     callback.success();
                     return;
                 }
@@ -294,6 +297,7 @@ public class ApiConfig {
                         return;
                     }
                     loadedLiveConfigUrl = liveApiUrl;
+                    MoreSourceHelper.rememberGoodLiveLine();
                     FileUtils.saveCache(live_cache, json);
                     callback.success();
                 } catch (Throwable th) {
@@ -309,6 +313,7 @@ public class ApiConfig {
                         parseLiveConfigContent(liveApiUrl, live_cache);
                         if (hasLiveConfigResult()) {
                             loadedLiveConfigUrl = liveApiUrl;
+                            MoreSourceHelper.rememberGoodLiveLine();
                             callback.success();
                             return;
                         }
@@ -819,36 +824,26 @@ public class ApiConfig {
         }
 
         // 直播源
+        // 接口配置文件中的直播线路：无论当前是否在播放用户自定义直播源，都保存下来供
+        // “直播地址”弹窗与“多源切换”展示；切换配置时整体替换（上一条配置的直播线路自动删除）
+        JsonArray configLives = infoJson.has("lives") ? infoJson.get("lives").getAsJsonArray() : new JsonArray();
+        MoreSourceHelper.saveConfigLiveLines(apiUrl, configLives.toString());
+        Hawk.put(HawkConfig.LIVE_GROUP_LIST, configLives);
         String live_api_url=Hawk.get(HawkConfig.LIVE_API_URL,"");
         if(live_api_url.isEmpty() || apiUrl.equals(live_api_url)){
             LOG.i("echo-load-config_live");
             initLiveSettings();
-            if(infoJson.has("lives")){
-                JsonArray lives_groups=infoJson.get("lives").getAsJsonArray();
+            if(configLives.size()>0){
                 int live_group_index=getLiveGroupIndex();
-                if(live_group_index>lives_groups.size()-1)live_group_index=0;
-                Hawk.put(HawkConfig.LIVE_GROUP_LIST,lives_groups);
-                //加载多源配置
-                try {
-                    ArrayList<LiveSettingItem> liveSettingItemList = new ArrayList<>();
-                    for (int i=0; i< lives_groups.size();i++) {
-                        JsonObject jsonObject = lives_groups.get(i).getAsJsonObject();
-                        String name = jsonObject.has("name")?jsonObject.get("name").getAsString():"线路"+(i+1);
-                        LiveSettingItem liveSettingItem = new LiveSettingItem();
-                        liveSettingItem.setItemIndex(i);
-                        liveSettingItem.setItemName(name);
-                        liveSettingItemList.add(liveSettingItem);
-                    }
-                    liveSettingGroupList.get(5).setLiveSettingItems(liveSettingItemList);
-                } catch (Exception e) {
-                    // 捕获任何可能发生的异常
-                    e.printStackTrace();
+                if(live_group_index>configLives.size()-1){
+                    live_group_index=0;
+                    setLiveGroupIndex(0); // 默认使用接口配置文件中的第一条直播线路
                 }
-
-                JsonObject livesOBJ = lives_groups.get(live_group_index).getAsJsonObject();
+                JsonObject livesOBJ = configLives.get(live_group_index).getAsJsonObject();
                 loadLiveApi(livesOBJ);
             }
         }
+        refreshLiveMultiSourceItems();
 
         myHosts = new HashMap<>();
         if (infoJson.has("hosts")) {
@@ -1085,27 +1080,16 @@ public class ApiConfig {
 
             int live_group_index=getLiveGroupIndex();
             if(live_group_index>lives_groups.size()-1)live_group_index=0;
-            Hawk.put(HawkConfig.LIVE_GROUP_LIST,lives_groups);
-            //加载多源配置
-            try {
-                ArrayList<LiveSettingItem> liveSettingItemList = new ArrayList<>();
-                for (int i=0; i< lives_groups.size();i++) {
-                    JsonObject jsonObject = lives_groups.get(i).getAsJsonObject();
-                    String name = jsonObject.has("name")?jsonObject.get("name").getAsString():"线路"+(i+1);
-                    LiveSettingItem liveSettingItem = new LiveSettingItem();
-                    liveSettingItem.setItemIndex(i);
-                    liveSettingItem.setItemName(name);
-                    liveSettingItemList.add(liveSettingItem);
-                }
-                liveSettingGroupList.get(5).setLiveSettingItems(liveSettingItemList);
-            } catch (Exception e) {
-                // 捕获任何可能发生的异常
-                e.printStackTrace();
+            // 用户自行添加的直播源会作为独立条目展示在多源切换中，不再展开其内部线路
+            String live_api_url = Hawk.get(HawkConfig.LIVE_API_URL, "");
+            if (live_api_url == null || live_api_url.isEmpty() || !MoreSourceHelper.isUserLiveSource(live_api_url)) {
+                Hawk.put(HawkConfig.LIVE_GROUP_LIST, lives_groups);
             }
 
             JsonObject livesOBJ = lives_groups.get(live_group_index).getAsJsonObject();
             loadLiveApi(livesOBJ);
         }
+        refreshLiveMultiSourceItems();
 
         myHosts = new HashMap<>();
         if (infoJson.has("hosts")) {
@@ -1165,6 +1149,8 @@ public class ApiConfig {
 
     public void refreshLiveApiHistoryItems() {
         if (liveSettingGroupList.size() < 7) return;
+        // 用户自行添加的直播源从"配置切换"历史中剔除（只在"多源切换"展示）
+        MoreSourceHelper.pruneUserLiveFromHistory();
         ArrayList<LiveSettingItem> liveSettingItemList = new ArrayList<>();
         ArrayList<String> history = Hawk.get(HawkConfig.LIVE_API_HISTORY, new ArrayList<String>());
         for (int i = 0; i < history.size(); i++) {
@@ -1174,6 +1160,24 @@ public class ApiConfig {
             liveSettingItemList.add(liveSettingItem);
         }
         liveSettingGroupList.get(6).setLiveSettingItems(liveSettingItemList);
+    }
+
+    /**
+     * 重建"多源切换"列表：用户自行添加的直播源在前，当前接口配置文件中的直播线路在后。
+     * 与"直播地址"弹窗共用 MoreSourceHelper.getLiveDialogList()，保证两处信息一致。
+     */
+    public void refreshLiveMultiSourceItems() {
+        if (liveSettingGroupList.size() < 7) initLiveSettings();
+        if (liveSettingGroupList.size() < 7) return;
+        ArrayList<LiveSettingItem> liveSettingItemList = new ArrayList<>();
+        List<MoreSourceBean> lines = MoreSourceHelper.getLiveDialogList();
+        for (int i = 0; i < lines.size(); i++) {
+            LiveSettingItem liveSettingItem = new LiveSettingItem();
+            liveSettingItem.setItemIndex(i);
+            liveSettingItem.setItemName(MoreSourceHelper.getLiveDisplayName(lines.get(i)));
+            liveSettingItemList.add(liveSettingItem);
+        }
+        liveSettingGroupList.get(5).setLiveSettingItems(liveSettingItemList);
     }
 
     public void loadLives(JsonArray livesArray) {

@@ -431,6 +431,8 @@ public class ModelSettingFragment extends BaseLazyFragment {
                         }
                         Hawk.put(HawkConfig.API_URL, newApi);
                         Hawk.put(HawkConfig.LIVE_API_URL, newApi);
+                        ApiConfig.setLiveGroupIndex(0); // 默认使用新接口配置文件的第一条直播线路
+                        MoreSourceHelper.clearLastGoodLiveLine(); // 接口配置已更换，清除旧的直播线路回退记录
                         HistoryHelper.setLiveApiHistory(newApi);
                         // v2.1.7：同步更新当前线路 Bean → "配置地址"按钮显示名称+URL（与其他入口一致）
                         MoreSourceBean lineBean = new MoreSourceBean();
@@ -892,20 +894,9 @@ public class ModelSettingFragment extends BaseLazyFragment {
         return name.isEmpty() ? url : name + "  " + url;
     }
 
-    /** v2.1.6："直播地址"按钮文本 = 名称在左 + 地址 URL 在右（名称空时仅显示 URL） */
+    /** "直播地址"按钮文本 = 当前正在播放的直播线路名称（不再显示接口配置地址） */
     private String liveButtonText() {
-        String url = Hawk.get(HawkConfig.LIVE_API_URL, "");
-        if (url == null) url = "";
-        if (url.isEmpty()) return "";
-        String name = "";
-        for (MoreSourceBean b : MoreSourceHelper.getLiveSourceList()) {
-            if (url.equals(b.getSourceUrl()) && b.getSourceName() != null
-                    && !b.getSourceName().isEmpty() && !b.getSourceName().equals(url)) {
-                name = b.getSourceName();
-                break;
-            }
-        }
-        return name.isEmpty() ? url : name + "  " + url;
+        return MoreSourceHelper.getCurrentLiveLineName();
     }
 
     private void refreshDanmuApiText() {

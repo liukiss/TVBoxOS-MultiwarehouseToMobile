@@ -20,6 +20,7 @@ import com.github.tvbox.osc.ui.adapter.SettingPageAdapter;
 import com.github.tvbox.osc.ui.fragment.ModelSettingFragment;
 import com.github.tvbox.osc.util.AppManager;
 import com.github.tvbox.osc.util.HawkConfig;
+import com.github.tvbox.osc.util.MoreSourceHelper;
 import com.orhanobut.hawk.Hawk;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
@@ -114,7 +115,8 @@ public class SettingActivity extends BaseActivity {
         currentApi = Hawk.get(HawkConfig.API_URL, "https://tv.ysccn.top/xljk_nopermission.json");
         homeSourceKey = ApiConfig.get().getHomeSourceBean().getKey();
         homeRec = Hawk.get(HawkConfig.HOME_REC, HawkConfig.DEFAULT_HOME_REC);
-        currentLiveApi = Hawk.get(HawkConfig.LIVE_API_URL, "");
+        // 记录当前直播线路指纹（含接口配置文件中的直播线路切换）
+        currentLiveApi = MoreSourceHelper.getCurrentLiveLineKey();
         List<String> sortList = new ArrayList<>();
         sortList.add("设置其他");
         sortAdapter.setNewData(sortList);
@@ -185,7 +187,7 @@ public class SettingActivity extends BaseActivity {
         if (currentApi.equals(Hawk.get(HawkConfig.API_URL, "https://tv.ysccn.top/xljk_nopermission.json"))) {
             if (homeRec != Hawk.get(HawkConfig.HOME_REC, HawkConfig.DEFAULT_HOME_REC)) {
                 jumpActivity(MainActivity.class, createBundle());
-            }else if(!currentLiveApi.equals(Hawk.get(HawkConfig.LIVE_API_URL, ""))){
+            }else if(!currentLiveApi.equals(MoreSourceHelper.getCurrentLiveLineKey())){
                 jumpActivity(MainActivity.class, createBundle());
             }
         } else {

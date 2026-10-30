@@ -13,11 +13,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.tvbox.osc.R;
+import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.bean.MoreSourceBean;
 import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.ui.adapter.MoreSourceAdapter;
 import com.github.tvbox.osc.util.HawkConfig;
-import com.github.tvbox.osc.util.HistoryHelper;
 import com.github.tvbox.osc.util.MoreSourceHelper;
 import com.orhanobut.hawk.Hawk;
 
@@ -97,22 +97,40 @@ public class LiveSourceDialog extends BaseDialog {
         mAdapter = new MoreSourceAdapter(new MoreSourceAdapter.SelectDialogInterface() {
             @Override
             public void click(MoreSourceBean value) {
-                // 点击已保存直播源 → 设为当前直播地址（直播"配置切换"中同步出现）
-                if (value == null || value.getSourceUrl() == null || value.getSourceUrl().isEmpty()) return;
-                Hawk.put(HawkConfig.LIVE_API_URL, value.getSourceUrl());
-                HistoryHelper.setLiveApiHistory(value.getSourceUrl());
-                Toast.makeText(mContext, "直播源已切换,进入直播生效!", Toast.LENGTH_SHORT).show();
+                if (value == null) return;
+                if (value.isShowDelete()) {
+                    // 用户自行添加的直播源 → 按地址整体切换直播源（不再写入"配置切换"历史）
+                    if (value.getSourceUrl() == null || value.getSourceUrl().isEmpty()) return;
+                    Hawk.put(HawkConfig.LIVE_API_URL, value.getSourceUrl());
+                } else {
+                    // 接口配置文件中的直播线路 → 切换为对应多源分组
+                    String apiUrl = Hawk.get(HawkConfig.API_URL, "");
+                    if (apiUrl == null) apiUrl = "";
+                    Hawk.put(HawkConfig.LIVE_API_URL, apiUrl);
+                    ApiConfig.setLiveGroupIndex(value.getLiveGroupIndex());
+                }
+                refreshLiveMenus();
+                Toast.makeText(mContext, "已切换直播线路：" + MoreSourceHelper.getLiveDisplayName(value)
+                        + "，进入直播生效!", Toast.LENGTH_SHORT).show();
                 dismiss();
             }
 
             @Override
             public void del(MoreSourceBean value, ArrayList<MoreSourceBean> data) {
+                // 只有用户自行添加的直播源带删除按钮
+                if (value == null || !value.isShowDelete()) return;
                 MoreSourceHelper.removeLiveSource(value);
-                liveList.remove(value);
+                String liveUrl = Hawk.get(HawkConfig.LIVE_API_URL, "");
+                if (value.getSourceUrl().equals(liveUrl)) {
+                    // 删除的正是当前直播源 → 回退到接口配置文件的第一条直播线路
+                    Hawk.put(HawkConfig.LIVE_API_URL, Hawk.get(HawkConfig.API_URL, ""));
+                    ApiConfig.setLiveGroupIndex(0);
+                }
                 // v2.1.6：删除后若无自动命名直播源 → 计数器归零（下次从"直播源1"开始）
                 MoreSourceHelper.resetAutoCounter(MoreSourceHelper.KEY_AUTO_NAME_LIVE,
                         MoreSourceHelper.AUTO_PREFIX_LIVE, MoreSourceHelper.getLiveSourceList());
-                mAdapter.setData(new ArrayList<>(liveList));
+                refreshLiveMenus();
+                loadData();
             }
         });
         mListView.setLayoutManager(new LinearLayoutManager(mContext));
@@ -132,15 +150,17 @@ public class LiveSourceDialog extends BaseDialog {
             delAll.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    List<MoreSourceBean> copy = new ArrayList<>(liveList);
-                    for (MoreSourceBean bean : copy) {
+                    // 只删除用户自行添加的直播源（接口配置文件中的直播线路不在此删除）
+                    for (MoreSourceBean bean : MoreSourceHelper.getLiveSourceList()) {
                         MoreSourceHelper.removeLiveSource(bean);
                     }
-                    // v2.1.2：彻底清除当前直播地址（按钮不再显示最后一次加载信息；直播加载回退 API_URL）
-                    Hawk.put(HawkConfig.LIVE_API_URL, "");
+                    // 当前直播回退到接口配置文件的第一条直播线路
+                    Hawk.put(HawkConfig.LIVE_API_URL, Hawk.get(HawkConfig.API_URL, ""));
+                    ApiConfig.setLiveGroupIndex(0);
                     // v2.1.6：全部删除 → 直播源自动命名计数器归零
                     MoreSourceHelper.resetAutoCounter(MoreSourceHelper.KEY_AUTO_NAME_LIVE,
                             MoreSourceHelper.AUTO_PREFIX_LIVE, MoreSourceHelper.getLiveSourceList());
+                    refreshLiveMenus();
                     loadData();
                 }
             });
@@ -180,8 +200,9 @@ public class LiveSourceDialog extends BaseDialog {
     private void loadData() {
         // 刷新动画与全应用统一：短暂展示 LoadingRingView，避免列表"无反馈"刷新
         showLoading();
+        // 用户自行添加的直播源（可删除）+ 当前接口配置文件中的直播线路（不可删除）
         liveList.clear();
-        liveList.addAll(MoreSourceHelper.getLiveSourceList());
+        liveList.addAll(MoreSourceHelper.getLiveDialogList());
         mAdapter.setData(new ArrayList<>(liveList));
         if (loadingView != null) {
             loadingView.postDelayed(new Runnable() {
@@ -191,6 +212,13 @@ public class LiveSourceDialog extends BaseDialog {
                 }
             }, 200);
         }
+    }
+
+    /** 直播线路变化 → 同步"多源切换"/"配置切换"与直播页；刷新设置页"直播地址"显示 */
+    private void refreshLiveMenus() {
+        ApiConfig.get().refreshLiveMultiSourceItems();
+        ApiConfig.get().refreshLiveApiHistoryItems();
+        EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_LIVE_API_URL_CHANGE));
     }
 
     private void showLoading() {
@@ -209,11 +237,12 @@ public class LiveSourceDialog extends BaseDialog {
             return;
         }
         String name = inputLiveName.getText().toString().trim();
-        // 写 live_source_list + LIVE_API_URL + LIVE_API_HISTORY（直播"配置切换"数据源）
+        // 写 live_source_list + LIVE_API_URL（用户直播源不进入"配置切换"历史）
         MoreSourceHelper.addLiveSource(name, url);
         Toast.makeText(mContext, "直播源已添加,进入直播生效!", Toast.LENGTH_SHORT).show();
         inputLiveName.setText("");
         inputLiveUrl.setText("");
+        refreshLiveMenus();
         loadData();
     }
 }

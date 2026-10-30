@@ -16,6 +16,8 @@ public class MoreSourceBean implements Serializable {
     private boolean isSelected = false;
     private boolean showDelete = false;
     private boolean isLocalPackage = false;
+    /** 接口配置文件中的直播线路序号（-1 表示用户自行添加的直播源） */
+    private int liveGroupIndex = -1;
     private List<MoreSourceBean> localLineUrls;
 
     public List<MoreSourceBean> getLocalLineUrls() {
@@ -40,6 +42,14 @@ public class MoreSourceBean implements Serializable {
 
     public void setShowDelete(boolean showDelete) {
         this.showDelete = showDelete;
+    }
+
+    public int getLiveGroupIndex() {
+        return this.liveGroupIndex;
+    }
+
+    public void setLiveGroupIndex(int liveGroupIndex) {
+        this.liveGroupIndex = liveGroupIndex;
     }
 
     public boolean isLocalPackage() {

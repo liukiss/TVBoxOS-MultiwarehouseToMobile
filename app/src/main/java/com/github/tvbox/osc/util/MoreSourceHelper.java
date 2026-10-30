@@ -2,6 +2,7 @@ package com.github.tvbox.osc.util;
 
 import android.text.TextUtils;
 
+import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.bean.MoreSourceBean;
 import com.orhanobut.hawk.Hawk;
 
@@ -33,6 +34,14 @@ public class MoreSourceHelper {
     public static final String KEY_API_HISTORY_LIST = "api_history_list";
     public static final String KEY_API_URL_BEAN = "api_url_bean";
     public static final String KEY_LIVE_SOURCE_LIST = "live_source_list";
+    /** 当前接口配置文件里的直播线路（JSON 文本；切换配置时整体替换，上一条配置的直播线路自动删除） */
+    public static final String KEY_LIVE_CONFIG_LINES = "live_config_lines";
+    /** KEY_LIVE_CONFIG_LINES 所属的接口配置地址 */
+    public static final String KEY_LIVE_CONFIG_LINES_API = "live_config_lines_api";
+    /** 最近一次加载成功的直播线路地址（切换线路加载失败时回退用） */
+    public static final String KEY_LIVE_LAST_GOOD_URL = "live_last_good_api_url";
+    /** 最近一次加载成功的直播线路分组序号 */
+    public static final String KEY_LIVE_LAST_GOOD_INDEX = "live_last_good_group_index";
 
     // v2.1.6 自动命名计数器（仓库N/线路N/直播源N）
     public static final String KEY_AUTO_NAME_STORE = "auto_name_store_counter";
@@ -205,6 +214,8 @@ public class MoreSourceHelper {
         Hawk.put(HawkConfig.API_LINE_SOURCE, "");
         Hawk.put(HawkConfig.LIVE_API_URL, "");
         Hawk.put(HawkConfig.LIVE_GROUP_LIST, new com.google.gson.JsonArray());
+        // 当前接口配置失效 → 同步清空其直播线路（用户自行添加的直播源保留）
+        clearConfigLiveLines();
     }
 
     /**
@@ -224,6 +235,7 @@ public class MoreSourceHelper {
         Hawk.put(HawkConfig.API_LINE_SOURCE, "");
         Hawk.put(HawkConfig.LIVE_API_URL, "");
         Hawk.put(HawkConfig.LIVE_API_HISTORY, new ArrayList<String>());
+        clearConfigLiveLines();
         // v2.1.6：全部删除 → 自动命名计数器归零（下次从 1 开始）
         Hawk.put(KEY_AUTO_NAME_STORE, 0);
         Hawk.put(KEY_AUTO_NAME_LINE, 0);
@@ -247,6 +259,11 @@ public class MoreSourceHelper {
         Hawk.put(KEY_API_URL_BEAN, line);
         // ③ 线路切换 → 直播地址跟随（v2.1.1）：直播"多源切换"以当前线路接口文件的直播定义为准
         Hawk.put(HawkConfig.LIVE_API_URL, line.getSourceUrl());
+        ApiConfig.setLiveGroupIndex(0); // 默认使用新接口配置文件的第一条直播线路
+        // 删除上一条接口配置文件的直播线路（用户自行添加的直播源保留），并联动刷新"多源切换"
+        clearConfigLiveLines();
+        clearLastGoodLiveLine();
+        ApiConfig.get().refreshLiveMultiSourceItems();
         HistoryHelper.setLiveApiHistory(line.getSourceUrl());
         // ④ 仅手动添加的单线路保存到"已保存线路"（去重，上限 30）
         if (saveToList) {
@@ -314,9 +331,167 @@ public class MoreSourceHelper {
         list.add(0, bean);
         while (list.size() > 30) list.remove(list.size() - 1);
         saveLiveSourceList(list);
-        // 原生直播链路
+        // 原生直播链路（用户自定义直播源不写入"配置切换"历史，只在"多源切换"中展示）
         Hawk.put(HawkConfig.LIVE_API_URL, finalUrl);
-        HistoryHelper.setLiveApiHistory(finalUrl);
+    }
+
+    /* ---------- 接口配置文件中的直播线路（直播地址弹窗 + 多源切换共用） ---------- */
+
+    /** 保存当前接口配置文件里的直播线路（整体替换 → 上一条配置的直播线路自动删除） */
+    public static void saveConfigLiveLines(String apiUrl, String livesJson) {
+        Hawk.put(KEY_LIVE_CONFIG_LINES_API, apiUrl == null ? "" : apiUrl);
+        Hawk.put(KEY_LIVE_CONFIG_LINES, livesJson == null || livesJson.isEmpty() ? "[]" : livesJson);
+    }
+
+    public static void clearConfigLiveLines() {
+        Hawk.put(KEY_LIVE_CONFIG_LINES_API, "");
+        Hawk.put(KEY_LIVE_CONFIG_LINES, "[]");
+    }
+
+    /** 接口配置文件中的直播线路（无删除按钮，顺序与配置文件一致） */
+    public static List<MoreSourceBean> getConfigLiveLines() {
+        String json = Hawk.get(KEY_LIVE_CONFIG_LINES, "[]");
+        String apiUrl = Hawk.get(KEY_LIVE_CONFIG_LINES_API, "");
+        List<MoreSourceBean> list = new ArrayList<>();
+        try {
+            JSONArray array = new JSONArray(json == null || json.isEmpty() ? "[]" : json);
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject obj = array.optJSONObject(i);
+                if (obj == null) continue;
+                MoreSourceBean bean = new MoreSourceBean();
+                String name = obj.optString("name", "");
+                bean.setSourceName(name == null || name.isEmpty() ? "线路" + (i + 1) : name);
+                String url = obj.optString("url", "");
+                if (url == null || url.isEmpty()) url = obj.optString("api", "");
+                if (url == null || url.isEmpty()) url = apiUrl;
+                bean.setSourceUrl(url);
+                bean.setShowDelete(false);
+                bean.setLiveGroupIndex(i);
+                list.add(bean);
+            }
+        } catch (Throwable ignored) {
+        }
+        return list;
+    }
+
+    /** 直播地址弹窗与"多源切换"弹窗共用的列表：用户自行添加（可删除）在前，配置文件直播线路在后 */
+    public static List<MoreSourceBean> getLiveDialogList() {
+        List<MoreSourceBean> list = new ArrayList<>(getLiveSourceList());
+        for (MoreSourceBean bean : list) bean.setShowDelete(true);
+        list.addAll(getConfigLiveLines());
+        return list;
+    }
+
+    /** 弹窗显示名：名称为空时回退地址 */
+    public static String getLiveDisplayName(MoreSourceBean bean) {
+        if (bean == null) return "";
+        String name = bean.getSourceName() == null ? "" : bean.getSourceName().trim();
+        return name.isEmpty() ? bean.getSourceUrl() : name;
+    }
+
+    public static boolean isUserLiveSource(String url) {
+        if (url == null || url.isEmpty()) return false;
+        for (MoreSourceBean bean : getLiveSourceList()) {
+            if (url.equals(bean.getSourceUrl())) return true;
+        }
+        return false;
+    }
+
+    private static int currentLiveGroupIndex() {
+        String liveUrl = Hawk.get(HawkConfig.LIVE_API_URL, "");
+        String key = (liveUrl == null || liveUrl.isEmpty())
+                ? HawkConfig.LIVE_GROUP_INDEX : HawkConfig.LIVE_GROUP_INDEX + "_" + liveUrl;
+        return Hawk.get(key, 0);
+    }
+
+    /** 当前正在播放的直播线路：用户自定义源优先，否则为接口配置文件的第 N 条直播线路 */
+    public static MoreSourceBean getCurrentLiveLine() {
+        String liveUrl = Hawk.get(HawkConfig.LIVE_API_URL, "");
+        if (liveUrl != null && !liveUrl.isEmpty()) {
+            for (MoreSourceBean bean : getLiveSourceList()) {
+                if (liveUrl.equals(bean.getSourceUrl())) {
+                    MoreSourceBean copy = new MoreSourceBean();
+                    copy.setSourceName(bean.getSourceName());
+                    copy.setSourceUrl(bean.getSourceUrl());
+                    copy.setShowDelete(true);
+                    return copy;
+                }
+            }
+        }
+        List<MoreSourceBean> lines = getConfigLiveLines();
+        int index = currentLiveGroupIndex();
+        if (index >= 0 && index < lines.size()) return lines.get(index);
+        return lines.isEmpty() ? null : lines.get(0);
+    }
+
+    public static String getCurrentLiveLineName() {
+        MoreSourceBean bean = getCurrentLiveLine();
+        return bean == null ? "" : getLiveDisplayName(bean);
+    }
+
+    /** 当前直播线路在"直播地址/多源切换"列表中的位置 */
+    public static int getCurrentLiveLineIndex() {
+        MoreSourceBean current = getCurrentLiveLine();
+        if (current == null) return 0;
+        List<MoreSourceBean> list = getLiveDialogList();
+        for (int i = 0; i < list.size(); i++) {
+            MoreSourceBean bean = list.get(i);
+            if (current.isShowDelete() == bean.isShowDelete()
+                    && current.getSourceUrl().equals(bean.getSourceUrl())
+                    && current.getSourceName().equals(bean.getSourceName())) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    /** 当前直播线路指纹（用于判断线路是否变化） */
+    public static String getCurrentLiveLineKey() {
+        MoreSourceBean bean = getCurrentLiveLine();
+        if (bean == null) return "";
+        return (bean.isShowDelete() ? "user:" : "config:") + bean.getLiveGroupIndex() + ":" + bean.getSourceUrl();
+    }
+
+    /** 记录当前直播线路为"最近一次加载成功"（切换线路加载失败时回退到它） */
+    public static void rememberGoodLiveLine() {
+        String url = Hawk.get(HawkConfig.LIVE_API_URL, "");
+        if (url == null || url.isEmpty()) url = Hawk.get(HawkConfig.API_URL, "");
+        Hawk.put(KEY_LIVE_LAST_GOOD_URL, url == null ? "" : url);
+        Hawk.put(KEY_LIVE_LAST_GOOD_INDEX, currentLiveGroupIndex());
+    }
+
+    public static void clearLastGoodLiveLine() {
+        Hawk.put(KEY_LIVE_LAST_GOOD_URL, "");
+        Hawk.put(KEY_LIVE_LAST_GOOD_INDEX, 0);
+    }
+
+    /**
+     * 切换线路加载失败 → 回退到最近一次加载成功的直播线路。
+     * 若当前线路本身就是最近成功线路，则返回 false（避免反复重试死循环）。
+     */
+    public static boolean restoreLastGoodLiveLine() {
+        String goodUrl = Hawk.get(KEY_LIVE_LAST_GOOD_URL, "");
+        if (goodUrl == null || goodUrl.isEmpty()) return false;
+        String current = Hawk.get(HawkConfig.LIVE_API_URL, "");
+        if (current == null || current.isEmpty()) current = Hawk.get(HawkConfig.API_URL, "");
+        if (goodUrl.equals(current)) return false;
+        int index = Hawk.get(KEY_LIVE_LAST_GOOD_INDEX, 0);
+        Hawk.put(HawkConfig.LIVE_API_URL, goodUrl);
+        String key = goodUrl.isEmpty()
+                ? HawkConfig.LIVE_GROUP_INDEX : HawkConfig.LIVE_GROUP_INDEX + "_" + goodUrl;
+        Hawk.put(key, index);
+        return true;
+    }
+
+    /** "配置切换"历史中剔除用户自行添加的直播源（用户源只在"多源切换"展示） */
+    public static void pruneUserLiveFromHistory() {
+        ArrayList<String> history = Hawk.get(HawkConfig.LIVE_API_HISTORY, new ArrayList<String>());
+        if (history == null || history.isEmpty()) return;
+        ArrayList<String> filtered = new ArrayList<>();
+        for (String url : history) {
+            if (url != null && !url.isEmpty() && !isUserLiveSource(url)) filtered.add(url);
+        }
+        Hawk.put(HawkConfig.LIVE_API_HISTORY, filtered);
     }
 
     /* ========== 远程推送/静默添加（不依赖 UI，供 ControlManager 等后台调用） ========== */
