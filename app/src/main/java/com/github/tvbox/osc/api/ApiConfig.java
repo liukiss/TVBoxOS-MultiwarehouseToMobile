@@ -279,7 +279,6 @@ public class ApiConfig {
                 parseLiveConfigContent(liveApiUrl, live_cache);
                 if (hasLiveConfigResult()) {
                     loadedLiveConfigUrl = liveApiUrl;
-                    MoreSourceHelper.rememberGoodLiveLine();
                     callback.success();
                     return;
                 }
@@ -297,7 +296,6 @@ public class ApiConfig {
                         return;
                     }
                     loadedLiveConfigUrl = liveApiUrl;
-                    MoreSourceHelper.rememberGoodLiveLine();
                     FileUtils.saveCache(live_cache, json);
                     callback.success();
                 } catch (Throwable th) {
@@ -313,7 +311,6 @@ public class ApiConfig {
                         parseLiveConfigContent(liveApiUrl, live_cache);
                         if (hasLiveConfigResult()) {
                             loadedLiveConfigUrl = liveApiUrl;
-                            MoreSourceHelper.rememberGoodLiveLine();
                             callback.success();
                             return;
                         }

@@ -562,8 +562,9 @@ public class MoreSourceHelper {
         if (goodUrl == null || goodUrl.isEmpty()) return false;
         String current = Hawk.get(HawkConfig.LIVE_API_URL, "");
         if (current == null || current.isEmpty()) current = Hawk.get(HawkConfig.API_URL, "");
-        if (goodUrl.equals(current)) return false;
         int index = Hawk.get(KEY_LIVE_LAST_GOOD_INDEX, 0);
+        // 地址相同但直播线路分组不同，也允许回退（同一配置文件内切换直播线路失败的情况）
+        if (goodUrl.equals(current) && index == currentLiveGroupIndex()) return false;
         Hawk.put(HawkConfig.LIVE_API_URL, goodUrl);
         String key = goodUrl.isEmpty()
                 ? HawkConfig.LIVE_GROUP_INDEX : HawkConfig.LIVE_GROUP_INDEX + "_" + goodUrl;

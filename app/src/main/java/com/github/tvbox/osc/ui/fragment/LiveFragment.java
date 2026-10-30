@@ -372,6 +372,37 @@ public class LiveFragment extends BaseLazyFragment {
                 || (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && mActivity.isDestroyed());
     }
 
+    /**
+     * 直播列表加载失败（配置地址可用但未加载到可用数据）：
+     * 自动切回上一次加载成功的直播线路并重新加载，避免页面停留在"什么也没有找到"、
+     * 后台却继续播放旧线路导致无法操作。
+     */
+    private void onLiveListLoadFailed() {
+        if (isActivityUnavailable()) return;
+        boolean restored = MoreSourceHelper.restoreLastGoodLiveLine();
+        if (restored) {
+            showLiveListFailedToast("直播列表加载失败，该直播源不可用，切回原直播！");
+            loadLiveChannels(true);
+            return;
+        }
+        // 没有可回退的线路：至少停止后台播放，避免"有声音但无法操作"
+        showLiveListFailedToast("直播列表加载失败，该直播源不可用！");
+        if (mVideoView != null) mVideoView.release();
+        showEmpty();
+    }
+
+    /** 固定显示 3 秒的提示 */
+    private void showLiveListFailedToast(String msg) {
+        final Toast toast = Toast.makeText(mActivity, msg, Toast.LENGTH_LONG);
+        toast.show();
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                toast.cancel();
+            }
+        }, 3000);
+    }
+
     private void openFullscreenLive() {
         if (mVideoView != null) {
             mVideoView.pause();
@@ -386,8 +417,15 @@ public class LiveFragment extends BaseLazyFragment {
     }
 
     private void loadLiveChannels() {
+        loadLiveChannels(false);
+    }
+
+    /**
+     * @param forceReload 直播列表加载失败回退时强制重新解析（同一配置地址仅切换了直播线路分组时也能生效）
+     */
+    private void loadLiveChannels(boolean forceReload) {
         List<LiveChannelGroup> cachedGroups = ApiConfig.get().getChannelGroupList();
-        if (ApiConfig.get().shouldReloadLiveConfig() || cachedGroups == null || cachedGroups.isEmpty()) {
+        if (forceReload || ApiConfig.get().shouldReloadLiveConfig() || cachedGroups == null || cachedGroups.isEmpty()) {
             if (liveConfigLoading) return;
             liveConfigLoading = true;
             showLoading();
@@ -417,7 +455,7 @@ public class LiveFragment extends BaseLazyFragment {
                             if (MoreSourceHelper.restoreLastGoodLiveLine()) {
                                 Toast.makeText(mActivity, (failedName.isEmpty() ? "直播线路" : failedName)
                                         + "加载失败！已切回原直播线路", Toast.LENGTH_SHORT).show();
-                                loadLiveChannels();
+                                loadLiveChannels(true);
                                 return;
                             }
                             showEmpty();
@@ -458,8 +496,6 @@ public class LiveFragment extends BaseLazyFragment {
             showEmpty();
             return;
         }
-        // 当前直播线路已成功加载 → 记录，供加载失败时回退
-        MoreSourceHelper.rememberGoodLiveLine();
         // 配置中的直播地址为本地代理时，需要先拉取代理返回的真实频道列表
         if (groups.size() == 1 && groups.get(0) != null && groups.get(0).getGroupName() != null
                 && groups.get(0).getGroupName().startsWith("http://127.0.0.1")) {
@@ -485,6 +521,8 @@ public class LiveFragment extends BaseLazyFragment {
         if (sourceIndex >= 0 && currentChannelItem.getSourceNum() > 0) {
             currentChannelItem.setSourceIndex(Math.min(sourceIndex, currentChannelItem.getSourceNum() - 1));
         }
+        // 只有真正拿到可播频道后才记录"最近一次加载成功"的直播线路（供加载失败时回退）
+        MoreSourceHelper.rememberGoodLiveLine();
         playCurrentChannel();
         refreshChannelLists();
     }
@@ -505,7 +543,7 @@ public class LiveFragment extends BaseLazyFragment {
         }
         if (!isValidLiveProxyUrl(url)) {
             liveProxyLoading = false;
-            showEmpty();
+            onLiveListLoadFailed();
             return;
         }
         final String liveUrl = url;
@@ -553,10 +591,7 @@ public class LiveFragment extends BaseLazyFragment {
                         @Override
                         public void run() {
                             liveProxyLoading = false;
-                            if (!isActivityUnavailable()) {
-                                showEmpty();
-                                Toast.makeText(mActivity, "直播列表加载失败", Toast.LENGTH_SHORT).show();
-                            }
+                            onLiveListLoadFailed();
                         }
                     });
                 }
@@ -570,7 +605,7 @@ public class LiveFragment extends BaseLazyFragment {
                 @Override
                 public void run() {
                     liveProxyLoading = false;
-                    if (!isActivityUnavailable()) showEmpty();
+                    onLiveListLoadFailed();
                 }
             });
             return;
@@ -587,7 +622,7 @@ public class LiveFragment extends BaseLazyFragment {
                 @Override
                 public void run() {
                     liveProxyLoading = false;
-                    if (!isActivityUnavailable()) showEmpty();
+                    onLiveListLoadFailed();
                 }
             });
             return;
@@ -1593,12 +1628,11 @@ public class LiveFragment extends BaseLazyFragment {
         refreshGroupSelection(6, getCurrentLiveApiHistoryIndex());
         ApiConfig.get().loadLiveApi(groupObject);
         if (ApiConfig.get().getChannelGroupList().isEmpty()) {
+            // 该直播线路无可用数据 → 回退到上一次加载成功的线路
             currentChannelItem = null;
-            if (mVideoView != null) mVideoView.release();
-            showEmpty();
+            onLiveListLoadFailed();
             return;
         }
-        MoreSourceHelper.rememberGoodLiveLine();
         restoreChannelAndPlay(channelName, sourceIndex);
     }
 
